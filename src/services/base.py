@@ -26,11 +26,9 @@ class BaseService(ABC):
     @cache_method(cache_attr="cacher")
     async def get_by_id(self, id: str):
         """
-        Функция для получения инф-ии о жанре по genre_id.
-        Используется в API /api/v1/genres/{genre_id}
+        Функция для получения инф-ии об объекте по его id.
         Параметры:
-          :genre_id: str UUID жанра
-        Возвращает: инф-ию о жанре
+          :id: str UUID объекта
         """
 
         logger.debug("get_by_id: %s", id)
@@ -46,10 +44,9 @@ class BaseService(ABC):
 
     async def _get_from_es_by_id(self, id: str):
         """
-        Функция для получения из Эластика инф-ии о жанре по genre_id.
+        Функция для получения из Эластика инф-ии об объекте по его id.
         Параметры:
-          :genre_id: str UUID жанра
-        Возвращает: инф-ию о жанре
+          :id: str UUID жанра
         """
 
         logger.debug("_get_from_es_by_id: %s", id)
@@ -60,11 +57,11 @@ class BaseService(ABC):
         except NotFoundError:
             return None
 
-    async def _enrich_doc_from_es(self, doc: Dict, id: str):
+    async def _enrich_doc_from_es(self, doc: Dict, id: str) -> Dict:
         "Обогащает полученный документ дополнительными данными"
         return doc
 
-    async def _enrich_list_from_es(self, doclist: List):
+    async def _enrich_list_from_es(self, doclist: List) -> List[Dict]:
         "Обогащает полученный список документов дополнительными данными"
         return doclist
 
@@ -127,18 +124,17 @@ async def get_query_for_search(
       :query: str Ключевое слово для поиска
       :page_size: int Кол-во элементов на странице
       :page_number: int Номер страницы выдачи
-    Возвращает: список найденных элементов заданного класса.
+    Возвращает: Возвращает запрос в формате dict.
     """
+    query_function_map = {
+        "genre": get_query_for_search_genres,
+        "person": get_query_for_search_persons,
+        "film": get_query_for_search_films,
+    }
 
-    if es_index == "genre":
-        query = await get_query_for_search_genres(page_size, page_number)
-    elif es_index == "person":
-        query = await get_query_for_search_persons(
-            query, page_size, page_number
-        )
-    elif es_index == "film":
-        query = await get_query_for_search_films(query, page_size, page_number)
-    else:
-        query = None
+    if es_index not in query_function_map:
+        raise ValueError(f"Неизвестный индекс: {es_index}")
 
-    return query
+    query_function = query_function_map[es_index]
+
+    return await query_function(query, page_size, page_number)

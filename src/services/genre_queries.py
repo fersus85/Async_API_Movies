@@ -2,7 +2,7 @@ from typing import Dict
 
 
 async def get_query_for_search_genres(
-    page_size: int, page_number: int
+    query: str, page_size: int, page_number: int
 ) -> Dict:
     """
     Функция формирует запрос в Elastic Search

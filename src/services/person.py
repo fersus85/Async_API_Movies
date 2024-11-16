@@ -22,13 +22,13 @@ class PersonService(BaseService):
     es_index = "person"
     model_type = Person
 
-    async def _enrich_doc_from_es(self, doc: Dict, person_id: str):
+    async def _enrich_doc_from_es(self, doc: Dict, person_id: str) -> Dict:
         "Обогащаем данные о персоне списком фильмов с её участием"
         films = await self._get_person_films(person_id)
         doc["_source"]["films"] = films
         return doc
 
-    async def _enrich_list_from_es(self, doclist: List):
+    async def _enrich_list_from_es(self, doclist: List) -> List[Dict]:
         "Обогащаем данные о найденных персонах списком фильмов с их участием"
         for doc in doclist:
             films = await self._get_person_films(doc["_source"]["id"])
