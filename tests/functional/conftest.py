@@ -54,3 +54,13 @@ def make_get_request(aiohttp_client: aiohttp.ClientSession):
         response = await aiohttp_client.get(url)
         return response
     return inner
+
+
+@pytest_asyncio.fixture(name='make_get_request_to_genre')
+def make_get_request_to_genre(aiohttp_client: aiohttp.ClientSession):
+    async def inner(data: str):
+        url = test_settings.SERVICE_URL + f'/api/v1/genres/{data}'
+        response = await aiohttp_client.get(url)
+        return response
+    return inner
+
