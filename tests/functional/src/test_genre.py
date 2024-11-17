@@ -18,10 +18,10 @@ import pytest
 )
 @pytest.mark.asyncio
 async def test_search_genre_by_id(
-    make_get_request_to_genre, query_data: str, exp_answer: Dict
+    make_get_request, query_data: str, exp_answer: Dict
 ):
 
-    response = await make_get_request_to_genre(query_data)
+    response = await make_get_request("genres", query_data)
 
     body = await response.json()
     status = response.status
@@ -31,9 +31,9 @@ async def test_search_genre_by_id(
 
 
 @pytest.mark.asyncio
-async def test_list_genres(make_get_request_to_genre):
+async def test_list_genres(make_get_request):
 
-    response = await make_get_request_to_genre("")
+    response = await make_get_request("genres", "")
 
     body = await response.json()
     status = response.status

@@ -20,7 +20,7 @@ async def test_search_person_by_id(make_get_request,
                                    query_data: str,
                                    exp_answer: Dict):
 
-    response = await make_get_request(query_data)
+    response = await make_get_request("persons", query_data)
 
     body = await response.json()
     status = response.status
