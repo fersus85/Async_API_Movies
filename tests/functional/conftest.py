@@ -63,4 +63,3 @@ def make_get_request_to_genre(aiohttp_client: aiohttp.ClientSession):
         response = await aiohttp_client.get(url)
         return response
     return inner
-
