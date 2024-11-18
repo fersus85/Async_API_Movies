@@ -1,10 +1,9 @@
-import pytest_asyncio
 import asyncio
 
+import aiohttp
+import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 from redis.asyncio import Redis
-import aiohttp
-
 from tests.functional.settings import test_settings
 
 

@@ -1,5 +1,6 @@
-import pytest
 from typing import Dict
+
+import pytest
 from tests.functional.settings import test_settings
 
 

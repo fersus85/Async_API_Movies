@@ -1,11 +1,11 @@
+import pickle
 from typing import Dict
 from uuid import uuid4
-import pickle
+
 import pytest
 from db.redis import form_key
 from models.genre import Genre
 from tests.functional.settings import test_settings
-
 
 
 @pytest.mark.parametrize(
@@ -85,12 +85,14 @@ async def test_list_genres_with_pages(
     make_get_request, query_data: Dict, exp_answer: Dict
 ):
 
-    page_size = query_data['page_size']
-    page_number = query_data['page_number']
+    page_size = query_data["page_size"]
+    page_number = query_data["page_number"]
 
     query_parameters = f"?page_size={page_size}&page_number={page_number}"
 
-    response = await make_get_request(test_settings.ES_GENRE_IDX, query_parameters)
+    response = await make_get_request(
+        test_settings.ES_GENRE_IDX, query_parameters
+    )
 
     body = await response.json()
     status = response.status
