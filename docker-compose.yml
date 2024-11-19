@@ -1,0 +1,62 @@
+name: Async-API
+
+services:
+
+  elastic:
+    image: elasticsearch:8.6.2
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: false
+    ports:
+      - "9200:9200"
+    healthcheck:
+       test: curl -s http://elastic:9200 >/dev/null || exit 1
+       interval: 5s
+       timeout: 5s
+       retries: 10
+    restart: always
+
+  elasticdump:
+    # Этот контейнер дождётся готовности elastic,
+    # загрузит в него данные из файла в директории elasticdump,
+    # после чего выключится.
+    build: elasticdump
+    volumes:
+      - ./elasticdump:/elasticdump
+    depends_on:
+      elastic:
+        condition: service_healthy
+
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  fastapi:
+    build: .
+    image: fastapi
+    healthcheck:
+      test: curl -s http://fastapi:8000/api/openapi >/dev/null || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+    depends_on:
+      elastic:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      fastapi:
+        condition: service_healthy
+    restart: always
