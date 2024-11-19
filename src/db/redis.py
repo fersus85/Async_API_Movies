@@ -21,11 +21,13 @@ def form_key(*args, **kwargs) -> str:
 
 def redis_cache_method(redis_attr: str, expire: int = 1800):
     """
-    redis_cache_method is a decorator that caches the result of an asynchronous method in a Redis store.
+    redis_cache_method is a decorator that caches the result
+    of an asynchronous method in a Redis store.
 
     Parameters:
     - redis_attr (str): The attribute name for the Redis instance in the class.
-    - expire (int): The cache expiration time in seconds. Defaults to 1800 seconds (30 minutes).
+    - expire (int): The cache expiration time in seconds.
+                    Defaults to 1800 seconds (30 minutes).
 
     Raises:
     - ValueError: If the Redis instance is not set or not of the correct type.
