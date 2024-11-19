@@ -56,7 +56,9 @@ class GenreService:
         return Genre(**doc["_source"])
 
     @redis_cache_method(redis_attr='_redis')
-    async def get_genres(self, page_size: int, page_number: int) -> List[Genre]:
+    async def get_genres(self,
+                         page_size: int,
+                         page_number: int) -> List[Genre]:
         """
         Функция для получения списка жанров.
         Используется в API /api/v1/genres
@@ -66,7 +68,7 @@ class GenreService:
         Возвращает: список жанров
         """
         logger.debug(
-            "get_genres, page_size: %s, page_number: %s", page_size, page_number
+            "get_genres,page_size: %s, page_number: %s", page_size, page_number
         )
         genres = await self._get_genres_from_es(page_size, page_number)
         return genres
@@ -94,7 +96,9 @@ class GenreService:
 
         try:
             response = await self.elastic.search(index="genre", body=query)
-            genres = [Genre(**hit["_source"]) for hit in response["hits"]["hits"]]
+            genres = [
+                Genre(**hit["_source"]) for hit in response["hits"]["hits"]
+                ]
 
         except NotFoundError:
             return []
