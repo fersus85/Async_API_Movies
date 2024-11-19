@@ -30,18 +30,23 @@ async def search_persons(
     Список моделей PersonSchema
     """
 
-    person_list = await person_service.search_persons(query, page_size, page_number)
+    person_list = await person_service.search_persons(query,
+                                                      page_size,
+                                                      page_number)
 
     persons = []
 
     for person in person_list:
 
         films_list = [
-            PersonFilmSchema(uuid=pf.uuid, roles=pf.roles) for pf in person.films
+            PersonFilmSchema(uuid=pf.uuid, roles=pf.roles)
+            for pf in person.films
         ]
 
         persons.append(
-            PersonSchema(uuid=person.id, full_name=person.full_name, films=films_list)
+            PersonSchema(uuid=person.id,
+                         full_name=person.full_name,
+                         films=films_list)
         )
 
     return persons
@@ -64,11 +69,16 @@ async def get_person_by_id(
     person = await person_service.get_person_by_id(person_id)
 
     if not person:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Person not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
+                            detail="Person not found")
 
-    films_list = [PersonFilmSchema(uuid=pf.uuid, roles=pf.roles) for pf in person.films]
+    films_list = [
+        PersonFilmSchema(uuid=pf.uuid, roles=pf.roles) for pf in person.films
+        ]
 
-    return PersonSchema(uuid=person.id, full_name=person.full_name, films=films_list)
+    return PersonSchema(uuid=person.id,
+                        full_name=person.full_name,
+                        films=films_list)
 
 
 @router.get("/{person_id}/film", response_model=List[FilmByPersonSchema])
