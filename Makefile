@@ -10,7 +10,7 @@ all: up
 
 # Запуск приложения
 up:
-	@mkdir elasticdata
+	@mkdir -p elasticdata
 	@docker compose up -d --build
 
 # Очистка после остановки приложения
