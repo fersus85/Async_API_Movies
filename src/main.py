@@ -47,4 +47,6 @@ app = FastAPI(
 
 app.include_router(films.router, prefix='/v1/films', tags=['film_service'])
 app.include_router(genres.router, prefix='/v1/genres', tags=['genre_service'])
-app.include_router(persons.router, prefix='/v1/persons', tags=['person_service'])
+app.include_router(
+    persons.router, prefix='/v1/persons', tags=['person_service']
+    )
