@@ -79,7 +79,7 @@ class PersonService:
         return filmshort_list
 
     @redis_cache_method(redis_attr='_redis')
-    async def _get_films_from_es_by_person_id(
+    async def _get_films_es_by_person_id(
         self, person_id: str, page_size: int = 50, page_number: int = 1
     ) -> List[Film]:
         """
@@ -101,9 +101,13 @@ class PersonService:
 
             response = await self.elastic.search(index="film", body=query)
 
-            logger.debug("_get_films_from_es_by_person_id: validating response from ES")
+            logger.debug(
+                "_get_films_from_es_by_person_id: validating response from ES"
+                )
 
-            films = [Film(**hit["_source"]) for hit in response["hits"]["hits"]]
+            films = [
+                Film(**hit["_source"]) for hit in response["hits"]["hits"]
+                ]
 
         except NotFoundError:
 
@@ -128,7 +132,9 @@ class PersonService:
 
         logger.debug("search_persons, query: %s", query)
 
-        query = await get_query_for_search_persons(query, page_size, page_number)
+        query = await get_query_for_search_persons(query,
+                                                   page_size,
+                                                   page_number)
 
         persons = []
 
@@ -141,12 +147,14 @@ class PersonService:
                 person_id = hit["_source"]["id"]
                 person_full_name = hit["_source"]["full_name"]
 
-                person_films = await self._get_films_from_es_by_person_id(person_id)
-                films = await convert_films_to_person_films(person_id, person_films)
+                person_films = await self._get_films_es_by_person_id(person_id)
+                films = await convert_films_to_person_films(person_id,
+                                                            person_films)
 
                 logger.debug("search_persons: validating response from ES")
 
-                person = Person(id=person_id, full_name=person_full_name, films=films)
+                person = Person(id=person_id, full_name=person_full_name,
+                                films=films)
 
                 persons.append(person)
 
