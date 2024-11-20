@@ -41,7 +41,9 @@ services:
       retries: 10
 
   fastapi:
-    build: .
+    build:
+      context: .
+      target: final
     image: fastapi
     healthcheck:
       test: curl -s http://fastapi:8000/api/openapi >/dev/null || exit 1

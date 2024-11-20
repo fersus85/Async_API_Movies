@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.9 AS base
 
 WORKDIR /app/src
 
@@ -9,6 +9,14 @@ RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 COPY ./src /app/src
 
 RUN mkdir /app/logs
+
+FROM base as test
+
+COPY ./tests /app/tests
+
+ENV PYTHONPATH=/app
+
+FROM base as final
 
 EXPOSE 8000
 
