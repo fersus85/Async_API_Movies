@@ -19,3 +19,9 @@ dist/
 *.py,cover
 
 .ipynb_checkpoints
+
+.idea
+.vscode
+
+elasticdata
+redisdata

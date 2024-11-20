@@ -1,0 +1,41 @@
+name: Async-API
+
+services:
+
+  elastic:
+    image: elasticsearch:8.6.2
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: false
+    ports:
+      - "9200:9200"
+    restart: always
+
+  redis:
+    image: redis:7.4.1
+
+  fastapi:
+    build:
+      context: ../../.
+      target: final
+    image: fastapi-service
+    restart: always
+    depends_on:
+      - elastic
+      - redis
+  
+  tests:
+    build:
+      context: ../../.
+      target: test
+    image: fastapi-test
+    entrypoint: >
+      sh -c "pip install -r /app/tests/functional/requirements.txt
+      && python3 /app/tests/functional/utils/wait_for_es.py
+      && python3 /app/tests/functional/utils/wait_for_redis.py
+      && pytest /app/tests/functional/src"
+    depends_on:
+      - elastic
+      - redis
+      - fastapi
+

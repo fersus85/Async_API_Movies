@@ -4,6 +4,8 @@ services:
 
   elastic:
     image: elasticsearch:8.6.2
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data
     environment:
       discovery.type: single-node
       xpack.security.enabled: false
@@ -28,7 +30,10 @@ services:
         condition: service_healthy
 
   redis:
-    image: redis:latest
+    image: redis:7.4.1
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - ./redisdata:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 5s
@@ -36,7 +41,9 @@ services:
       retries: 10
 
   fastapi:
-    build: .
+    build:
+      context: .
+      target: final
     image: fastapi
     healthcheck:
       test: curl -s http://fastapi:8000/api/openapi >/dev/null || exit 1
@@ -51,7 +58,7 @@ services:
         condition: service_healthy
 
   nginx:
-    image: nginx:latest
+    image: nginx:1.27.2
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
@@ -60,3 +67,12 @@ services:
       fastapi:
         condition: service_healthy
     restart: always
+
+
+volumes:
+   elasticdata:
+     driver: local
+     driver_opts:
+       type: none
+       device: ./elasticdata
+       o: bind

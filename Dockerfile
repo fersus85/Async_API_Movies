@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.9 AS base
 
 WORKDIR /app/src
 
@@ -10,6 +10,14 @@ COPY ./src /app/src
 
 RUN mkdir /app/logs
 
+FROM base as test
+
+COPY ./tests /app/tests
+
+ENV PYTHONPATH=/app
+
+FROM base as final
+
 EXPOSE 8000
 
-ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["gunicorn", "main:app", "--bind", "0.0.0.0:8000", "-k", "uvicorn_worker.UvicornWorker"]

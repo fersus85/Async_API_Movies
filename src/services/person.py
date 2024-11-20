@@ -40,7 +40,7 @@ class PersonService:
         except NotFoundError:
             return None
 
-        person_films = await self._get_films_from_es_by_person_id(person_id)
+        person_films = await self._get_films_es_by_person_id(person_id)
         films = await convert_films_to_person_films(person_id, person_films)
 
         doc["_source"]["films"] = films
@@ -67,7 +67,7 @@ class PersonService:
 
         logger.debug("get_films_by_person_id: %s", person_id)
 
-        person_films = await self._get_films_from_es_by_person_id(
+        person_films = await self._get_films_es_by_person_id(
             person_id, page_size, page_number
         )
 

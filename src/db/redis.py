@@ -40,16 +40,26 @@ def redis_cache_method(redis_attr: str, expire: int = 1800):
             if redis_ is None or not isinstance(redis_, Redis):
                 raise ValueError('Redis instance is not set')
 
-            key = form_key(func.__name__, args, kwargs)
-
-            cache = await redis_.get(key)
-            if cache is not None:
-                logger.debug('Response from cache')
-                return pickle.loads(cache)
+            key = None
+            try:
+                key = form_key(func.__name__, args, kwargs)
+                cache = await redis_.get(key)
+                if cache is not None:
+                    logger.debug('Response from cache')
+                    return pickle.loads(cache)
+            except Exception as e:
+                logger.error('Error retrieving from cache: %s', e)
 
             result = await func(self, *args, **kwargs)
-            await redis_.set(key, pickle.dumps(result), ex=expire)
-            logger.debug('Response from ES')
+            if key is None:
+                return result
+
+            try:
+                await redis_.set(key, pickle.dumps(result), ex=expire)
+                logger.debug('Result stored in cache')
+            except Exception as e:
+                logger.error('Error storing to cache: %s', e)
+
             return result
 
         return wrapper
