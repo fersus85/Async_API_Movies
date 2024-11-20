@@ -3,20 +3,21 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class TestSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file='test.env',
+        env_file='.env',
         env_ignore_empty=True,
         extra='ignore'
     )
-    ES_INDEX: str = 'test'
-    ES_ID_FIELD: str = ''
-    ES_INDEX_MAPPING: dict = ''
-    SERVICE_URL: str = 'tests'
+    ES_PERSON_IDX: str = 'person'
+    ES_FILM_IDX: str = 'film'
+    ES_GENRE_IDX: str = 'genre'
 
-    ELASTIC_HOST: str = '127.0.0.1'
-    ELASTIC_PORT: int = 9200
+    SERVICE_URL: str = 'http://fastapi:8000'
 
-    REDIS_HOST: str = '127.0.0.1'
+    ES_HOST: str = 'elastic'
+    ES_PORT: int = 9200
+
+    REDIS_HOST: str = 'redis'
     REDIS_PORT: int = 6379
 
 
-settings = TestSettings()
+test_settings = TestSettings()
