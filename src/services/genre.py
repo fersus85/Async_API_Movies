@@ -7,7 +7,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic
-from db.redis import get_redis, redis_cache_method
+from db.redis import get_redis, cache_method, AbstractCache, RedisCache
 from models.genre import Genre
 
 logger = logging.getLogger(__name__)
@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 
 class GenreService:
 
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self._redis = redis
+    def __init__(self, cache: AbstractCache, elastic: AsyncElasticsearch):
+        self.cacher = RedisCache(cache)
         self.elastic = elastic
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def get_genre_by_id(self, genre_id: str) -> Optional[Genre]:
         """
         Функция для получения инф-ии о жанре по genre_id.
@@ -55,7 +55,7 @@ class GenreService:
 
         return Genre(**doc["_source"])
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def get_genres(self,
                          page_size: int,
                          page_number: int) -> List[Genre]:
@@ -105,7 +105,7 @@ class GenreService:
 
         return genres
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def get_total_genres_count(self) -> int:
         'Функция возвращает кол-во жанров в ES'
         resp = await self.elastic.count(index='genre')
@@ -114,10 +114,10 @@ class GenreService:
 
 @lru_cache
 def get_genre_service(
-    redis: Redis = Depends(get_redis),
+    cacher: Redis = Depends(get_redis),
     elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> GenreService:
     """
     Функция для создания экземпляра класса GenreService
     """
-    return GenreService(redis=redis, elastic=elastic)
+    return GenreService(cache=cacher, elastic=elastic)
