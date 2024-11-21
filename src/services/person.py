@@ -7,7 +7,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic
-from db.redis import get_redis, redis_cache_method
+from db.redis import get_redis, cache_method, AbstractCache, RedisCache
 from models.film import Film, FilmShort
 from models.person import Person
 from utils.film_utils import convert_films_to_person_films
@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class PersonService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self._redis = redis
+    def __init__(self,  cache: AbstractCache, elastic: AsyncElasticsearch):
+        self.cacher = RedisCache(cache)
         self.elastic = elastic
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def get_person_by_id(self, person_id: str) -> Optional[Person]:
         """
         Функция для получения Персоны по person_id,
@@ -51,7 +51,7 @@ class PersonService:
 
         return person
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def get_films_by_person_id(
         self, person_id: str, page_size: int = 50, page_number: int = 1
     ) -> List[FilmShort]:
@@ -78,7 +78,7 @@ class PersonService:
 
         return filmshort_list
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def _get_films_es_by_person_id(
         self, person_id: str, page_size: int = 50, page_number: int = 1
     ) -> List[Film]:
@@ -115,7 +115,7 @@ class PersonService:
 
         return films
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def search_persons(
         self, query: str, page_size: int, page_number: int
     ) -> List[Person]:
@@ -167,10 +167,10 @@ class PersonService:
 
 @lru_cache
 def get_person_service(
-    redis: Redis = Depends(get_redis),
+    cacher: Redis = Depends(get_redis),
     elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonService:
     """
     Функция для создания экземпляра класса PersonService
     """
-    return PersonService(redis=redis, elastic=elastic)
+    return PersonService(cache=cacher, elastic=elastic)

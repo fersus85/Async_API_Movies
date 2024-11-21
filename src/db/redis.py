@@ -2,12 +2,42 @@ import logging
 import pickle
 from functools import wraps
 from hashlib import sha256
-from typing import Optional, Callable
+from typing import Optional, Callable, Any, Protocol
 from redis.asyncio import Redis
 
 redis: Optional[Redis] = None
 
 logger = logging.getLogger(__name__)
+
+
+class AbstractCache(Protocol):
+    '''Абстрактый класс для кэша'''
+    async def set(self, key: str, value: Any, expire: int) -> None:
+        ...
+
+    async def get(self, key: str) -> Optional[Any]:
+        ...
+
+
+class RedisCache:
+    '''Реализация кэша с помощью Redis'''
+    def __init__(self, cache_type: Redis) -> None:
+        self.cacher = cache_type
+
+    async def set(self, key: str, value: Any, expire: int) -> None:
+        try:
+            await self.cacher.set(key, pickle.dumps(value), ex=expire)
+            logger.debug('Result stored in cache')
+        except Exception as ex:
+            logger.error('Error storing to cache: %s', ex)
+
+    async def get(self, key: str) -> Optional[Any]:
+        try:
+            cache_value = await self.cacher.get(key)
+            return pickle.loads(cache_value) if cache_value else None
+        except Exception as ex:
+            logger.error('Error retrieving from cache: %s', ex)
+            return None
 
 
 # Функция понадобится при внедрении зависимостей
@@ -19,47 +49,38 @@ def form_key(*args, **kwargs) -> str:
     return sha256(pickle.dumps((args, kwargs))).hexdigest()
 
 
-def redis_cache_method(redis_attr: str, expire: int = 1800):
+def cache_method(cache_attr: str, expire: int = 1800):
     """
-    redis_cache_method is a decorator that caches the result
-    of an asynchronous method in a Redis store.
+    cache_method is a decorator that caches the result
+    of an asynchronous method in a store.
 
     Parameters:
-    - redis_attr (str): The attribute name for the Redis instance in the class.
+    - cache_attr (str): The attribute name for the instance
+                        of store in the class.
     - expire (int): The cache expiration time in seconds.
                     Defaults to 1800 seconds (30 minutes).
 
     Raises:
-    - ValueError: If the Redis instance is not set or not of the correct type.
+    - ValueError: If the cacher instance is not set.
     """
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(self, *args, **kwargs):
-            redis_ = getattr(self, redis_attr, None)
-            if redis_ is None or not isinstance(redis_, Redis):
-                raise ValueError('Redis instance is not set')
+            cache = getattr(self, cache_attr, None)
 
-            key = None
-            try:
-                key = form_key(func.__name__, args, kwargs)
-                cache = await redis_.get(key)
-                if cache is not None:
-                    logger.debug('Response from cache')
-                    return pickle.loads(cache)
-            except Exception as e:
-                logger.error('Error retrieving from cache: %s', e)
+            if cache is None:
+                raise ValueError('Cache instance is not set')
+
+            key = form_key(func.__name__, args, kwargs)
+
+            cache_result = await cache.get(key)
+            if cache_result is not None:
+                logger.debug('Response from cache')
+                return cache_result
 
             result = await func(self, *args, **kwargs)
-            if key is None:
-                return result
-
-            try:
-                await redis_.set(key, pickle.dumps(result), ex=expire)
-                logger.debug('Result stored in cache')
-            except Exception as e:
-                logger.error('Error storing to cache: %s', e)
-
+            await cache.set(key, result, expire)
             return result
 
         return wrapper

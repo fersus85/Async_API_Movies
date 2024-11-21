@@ -7,7 +7,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic
-from db.redis import get_redis, redis_cache_method
+from db.redis import get_redis, cache_method, RedisCache, AbstractCache
 from models.film import Film
 from .film_queries import get_query_for_searching, get_query_for_popular_films
 
@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 class FilmService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self._redis = redis
+    def __init__(self, cache: AbstractCache, elastic: AsyncElasticsearch):
+        self.cacher = RedisCache(cache)
         self.elastic = elastic
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def films_search(self,
                            query: str,
                            page_size: int,
@@ -38,7 +38,7 @@ class FilmService:
         result = await self._search_films_in_es(query, page_size, page_number)
         return result
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def get_film_by_id(self, film_id: str) -> Optional[Film]:
         '''
         Функция для получения из ES фильма по id.
@@ -52,7 +52,7 @@ class FilmService:
             return None
         return film
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def get_popular_films(self,
                                 sort: str,
                                 page_size: int,
@@ -75,7 +75,7 @@ class FilmService:
             )
         return films
 
-    @redis_cache_method(redis_attr='_redis')
+    @cache_method(cache_attr='cacher')
     async def get_total_films_count(self) -> int:
         'Функция возвращает кол-во фильмов в ES'
         resp = await self.elastic.count(index='film')
@@ -151,10 +151,10 @@ class FilmService:
 
 @lru_cache
 def get_film_service(
-        redis: Redis = Depends(get_redis),
+        cacher: Redis = Depends(get_redis),
         elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> FilmService:
     '''
     Функция для создания экземпляра класса FilmService
     '''
-    return FilmService(redis=redis, elastic=elastic)
+    return FilmService(cache=cacher, elastic=elastic)
