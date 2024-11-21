@@ -1,13 +1,17 @@
 import asyncio
+import logging
 
 from redis.asyncio import Redis
 from tests.functional.settings import test_settings
 
 
+logger = logging.getLogger(__name__)
+
+
 async def wait_for_redis(redis: Redis):
     while True:
         if await redis.ping():
-            print("Redis is ready!")
+            logger.info("Redis is ready!")
             break
         await asyncio.sleep(1)
 
