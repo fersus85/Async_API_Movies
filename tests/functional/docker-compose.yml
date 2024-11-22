@@ -9,6 +9,11 @@ services:
       xpack.security.enabled: false
     ports:
       - "9200:9200"
+    healthcheck:
+      test: curl -s http://elastic:9200 >/dev/null || exit 1
+      interval: 20s
+      timeout: 10s
+      retries: 10
     restart: always
 
   redis:
@@ -24,18 +29,22 @@ services:
       - elastic
       - redis
   
+  test_dump:
+    build: test_dump
+    volumes:
+      - ./test_dump:/test_dump
+    depends_on:
+      elastic:
+        condition: service_healthy
+
   tests:
     build:
       context: ../../.
       target: test
     image: fastapi-test
-    entrypoint: >
-      sh -c "pip install -r /app/tests/functional/requirements.txt
-      && python3 /app/tests/functional/utils/wait_for_es.py
-      && python3 /app/tests/functional/utils/wait_for_redis.py
-      && pytest /app/tests/functional/src"
+    entrypoint: /app/tests/functional/start_tests.sh
     depends_on:
       - elastic
       - redis
       - fastapi
-
+      - test_dump

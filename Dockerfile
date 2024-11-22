@@ -14,6 +14,8 @@ FROM base AS test
 
 COPY ./tests /app/tests
 
+RUN chmod +x /app/tests/functional/start_tests.sh
+
 ENV PYTHONPATH=/app
 
 FROM base AS final
