@@ -7,9 +7,9 @@ async def get_query_for_search_persons(
     """
     Функция формирует запрос в Elastic Search
     Параметры:
-    :query: str Ключевое слово для поиска
-    :page_size: int Кол-во фильмов в выдаче
-    :page_number: int Номер страницы выдачи
+      :query: str Ключевое слово для поиска
+      :page_size: int Кол-во фильмов в выдаче
+      :page_number: int Номер страницы выдачи
     Возвращает: dict
     Запрос в БД в формате словаря
     """
@@ -31,9 +31,9 @@ async def get_query_for_films_by_person_id(
     """
     Функция формирует запрос в Elastic Search
     Параметры:
-    :query: str Ключевое слово для поиска
-    :page_size: int Кол-во фильмов в выдаче
-    :page_number: int Номер страницы выдачи
+      :query: str Ключевое слово для поиска
+      :page_size: int Кол-во фильмов в выдаче
+      :page_number: int Номер страницы выдачи
     Возвращает: dict
     Запрос в БД в формате словаря
     """
