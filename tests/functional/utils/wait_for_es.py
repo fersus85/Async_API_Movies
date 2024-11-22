@@ -1,13 +1,17 @@
 import asyncio
+import logging
 
 from elasticsearch import AsyncElasticsearch
 from tests.functional.settings import test_settings
 
 
+logger = logging.getLogger(__name__)
+
+
 async def wait_for_es(es_client: AsyncElasticsearch):
     while True:
         if await es_client.ping():
-            print("Elasticsearch is ready!")
+            logger.info("Elasticsearch is ready!")
             break
         await asyncio.sleep(1)
 

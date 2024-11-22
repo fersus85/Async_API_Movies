@@ -10,13 +10,13 @@ COPY ./src /app/src
 
 RUN mkdir /app/logs
 
-FROM base as test
+FROM base AS test
 
 COPY ./tests /app/tests
 
 ENV PYTHONPATH=/app
 
-FROM base as final
+FROM base AS final
 
 EXPOSE 8000
 
