@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
+import db
 from core.config import settings
 from core.log_config import setup_logging
 
@@ -24,14 +25,15 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     redis.redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-    elastic.es = AsyncElasticsearch(
+    elastic.es_client = AsyncElasticsearch(
         hosts=[f'http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}']
         )
+    db.search_engine = elastic.ElasticSearchEngine(elastic.es_client)
     logger.debug('Successfully connected to Redis and Elasticsearch.')
     yield
     logger.debug('Closing connections')
     await redis.redis.close()
-    await elastic.es.close()
+    await elastic.es_client.close()
 
 
 app = FastAPI(
