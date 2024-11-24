@@ -25,28 +25,28 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     redis.redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
     elastic.es = AsyncElasticsearch(
-        hosts=[f'http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}']
-        )
-    logger.debug('Successfully connected to Redis and Elasticsearch.')
+        hosts=[f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}"]
+    )
+    logger.debug("Successfully connected to Redis and Elasticsearch.")
     yield
-    logger.debug('Closing connections')
+    logger.debug("Closing connections")
     await redis.redis.close()
     await elastic.es.close()
 
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description='AsyncAPI movies services',
-    version='1.0.0',
+    description="AsyncAPI movies services",
+    version="1.0.0",
     lifespan=lifespan,
-    root_path='/api',
-    docs_url='/openapi',
-    openapi_url='/openapi.json',
+    root_path="/api",
+    docs_url="/openapi",
+    openapi_url="/openapi.json",
     default_response_class=ORJSONResponse,
 )
 
-app.include_router(films.router, prefix='/v1/films', tags=['film_service'])
-app.include_router(genres.router, prefix='/v1/genres', tags=['genre_service'])
+app.include_router(films.router, prefix="/v1/films", tags=["film_service"])
+app.include_router(genres.router, prefix="/v1/genres", tags=["genre_service"])
 app.include_router(
-    persons.router, prefix='/v1/persons', tags=['person_service']
-    )
+    persons.router, prefix="/v1/persons", tags=["person_service"]
+)

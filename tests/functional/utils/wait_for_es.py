@@ -18,14 +18,13 @@ async def wait_for_es(es_client: AsyncElasticsearch):
 
 async def main():
     es_client = AsyncElasticsearch(
-        hosts=[
-            f'http://{test_settings.ES_HOST}:{test_settings.ES_PORT}'
-            ]
-        )
+        hosts=[f"http://{test_settings.ES_HOST}:{test_settings.ES_PORT}"]
+    )
     try:
         await wait_for_es(es_client)
     finally:
         await es_client.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())
