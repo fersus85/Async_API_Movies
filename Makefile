@@ -17,10 +17,16 @@ test:
 	@echo "Запуск тестов..."
 	@cd $(TEST_PATH) && docker-compose up -d --build
 
-# Установка зависимостей
+# Установка зависимостей продашен
 install:
 	@echo "Установка зависимостей..."
 	@pip install -r requirements.txt
+
+# Установка зависимостей dev
+install-dev:
+	@echo "Установка зависимостей..."
+	@pip install -r requirements.txt
+	@pip install -r requirements-dev.txt
 
 # Линтинг
 lint:
@@ -43,9 +49,10 @@ clean:
 # Вывод справки
 help:
 	@echo "Доступные команды:"
-	@echo "  make up         - Запуск приложения"
-	@echo "  make test       - Запуск тестов"
-	@echo "  make install    - Установка зависимостей"
-	@echo "  make lint       - Запуск линтера"
-	@echo "  make format     - Автоформатирование кода"
-	@echo "  make clean      - Очистка временных файлов"
+	@echo "  make up          - Запуск приложения"
+	@echo "  make test        - Запуск тестов"
+	@echo "  make install     - Установка зависимостей продакшен"
+	@echo "  make install-dev - Установка зависимостей dev"
+	@echo "  make lint        - Запуск линтера"
+	@echo "  make format      - Автоформатирование кода"
+	@echo "  make clean       - Очистка временных файлов"
