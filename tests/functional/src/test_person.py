@@ -1,3 +1,4 @@
+
 from typing import Dict, Callable, Optional, Any, List
 from http import HTTPStatus
 from urllib.parse import urlencode
@@ -9,6 +10,10 @@ import pytest
 from aiohttp import ClientResponse
 from db.redis import form_key
 from models.person import Person
+from tests.functional.settings import test_settings
+
+
+import pytest
 from tests.functional.settings import test_settings
 
 
@@ -48,10 +53,12 @@ async def test_get_person_by_id(
     - Запрос с пустым ID, который возвращает статус NOT_FOUND.
     - Запрос с некорректным форматом ID, который возвращает статус NOT_FOUND.
 
+    feature/tests_person
     :param make_get_request: Фикстура для выполнения GET-запроса.
     :param query_data: ID персоны для запроса.
     :param exp_answer: Ожидаемый ответ, содержащий статус и имя персоны.
     """
+
     response = await make_get_request(test_settings.ES_PERSON_IDX, query_data)
 
     body = await response.json()

@@ -73,6 +73,7 @@ async def redis_client() -> AsyncGenerator[Redis, None]:
         AsyncGenerator[Redis, None]: Асинхронный генератор,
         который предоставляет клиент Redis для выполнения операций с данными.
     """
+
     if test_settings.SERVICE_URL == "http://localhost:8000":
         client = Redis(host="localhost", port=test_settings.REDIS_PORT)
         yield client
@@ -131,7 +132,6 @@ def make_get_request(
         принимающая имя сервиса и данные для запроса,
         возвращающая ответ от сервиса.
     """
-
     async def inner(service: str, data: str) -> aiohttp.ClientResponse:
         url = test_settings.SERVICE_URL + f"/api/v1/{service}s/{data}"
         response = await aiohttp_client.get(url)
