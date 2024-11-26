@@ -2,9 +2,8 @@ import logging
 from typing import Optional, Any, List, Dict
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
-from pydantic import BaseModel
 
-from db import ISearchEngine, IElasticQuery, IQuery
+from db import ISearchEngine, IElasticQuery
 
 logger = logging.getLogger(__name__)
 
