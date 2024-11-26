@@ -1,4 +1,4 @@
-.PHONY: up test install
+.PHONY: up test install test-local-up test-local-run clean lint format
 
 PYTHON = python3
 TEST_PATH = $(CURDIR)/tests/functional
@@ -12,10 +12,23 @@ all: up
 up:
 	@docker-compose up -d --build
 
-# Запуск тестов
+# Запуск тестов в докере
 test:
-	@echo "Запуск тестов..."
-	@cd $(TEST_PATH) && docker-compose up -d --build
+	@echo "Запуск тестов в докере..."
+	@cd $(TEST_PATH) \
+	&& docker-compose -f docker-compose.local_test.yml -f docker-compose.yml up -d --build
+
+# Поднятие инфраструктуры для запуска тестов локально
+test-local-up:
+	@echo "Поднятие инфраструктуры для запуска тестов локально..."
+	@cd $(TEST_PATH) && \
+	docker-compose -f docker-compose.local_test.yml up -d --build
+
+# Запуск тестов локально
+test-local-run:
+	@echo "Запуск тестов локально..."
+	@SERVICE_URL=http://localhost:8000 \
+	PYTHONPATH=src pytest $(TEST_PATH)
 
 # Установка зависимостей продашен
 install:
@@ -49,10 +62,12 @@ clean:
 # Вывод справки
 help:
 	@echo "Доступные команды:"
-	@echo "  make up          - Запуск приложения"
-	@echo "  make test        - Запуск тестов"
-	@echo "  make install     - Установка зависимостей продакшен"
-	@echo "  make install-dev - Установка зависимостей dev"
-	@echo "  make lint        - Запуск линтера"
-	@echo "  make format      - Автоформатирование кода"
-	@echo "  make clean       - Очистка временных файлов"
+	@echo "  make up             - Запуск приложения"
+	@echo "  make test           - Запуск тестов в докере"
+	@echo "  make test-local-up  - Поднятие инфраструктуры для запуска тестов"
+	@echo "  make test-local-run - Запуск тестов локально"
+	@echo "  make install        - Установка зависимостей продакшен"
+	@echo "  make install-dev    - Установка зависимостей dev"
+	@echo "  make lint           - Запуск линтера"
+	@echo "  make format         - Автоформатирование кода"
+	@echo "  make clean          - Очистка временных файлов"
