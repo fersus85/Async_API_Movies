@@ -13,10 +13,6 @@ from models.person import Person
 from tests.functional.settings import test_settings
 
 
-import pytest
-from tests.functional.settings import test_settings
-
-
 @pytest.mark.parametrize(
     "query_data, exp_answer",
     [
