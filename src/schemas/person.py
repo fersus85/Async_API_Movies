@@ -3,7 +3,7 @@ from typing import List, Literal
 from pydantic import BaseModel
 
 
-PERSON_ROLES = Literal['actor', 'director', 'writer']
+PERSON_ROLES = Literal["actor", "director", "writer"]
 
 
 class UUIDMixin(BaseModel):
