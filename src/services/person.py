@@ -6,8 +6,8 @@ from fastapi import Depends
 from pydantic import BaseModel
 from redis.asyncio import Redis
 
-from db import get_search_engine, ISearchEngine, IQuery, QueryParams
-from db.elastic import ElasticPersonQuery, ElasticFilmsByPersonIDQuery
+from db import get_search_engine, ISearchEngine, IQuery, QueryParams, \
+    query_factory, PersonQuery, FilmsByPersonIDQuery
 from db.redis import cache_method, get_redis
 from models.film import Film, FilmShort
 from models.person import Person, PersonFilm
@@ -24,11 +24,13 @@ class PersonService(BaseService):
                    query: str,
                    page_size: int,
                    page_number: int) -> IQuery:
-        return ElasticPersonQuery(QueryParams(
+        params = QueryParams(
             query=query,
             page_size=page_size,
             page_number=page_number
-        ))
+        )
+
+        return query_factory(self.searcher, PersonQuery, params)
 
     @cache_method(cache_attr="cacher")
     async def get_by_id(self, id: str) -> Optional[BaseModel]:
@@ -100,13 +102,13 @@ class PersonService(BaseService):
 
         logger.debug("_get_films_from_es_by_person_id: %s", person_id)
 
-        query = ElasticFilmsByPersonIDQuery(
-            QueryParams(
-                query=person_id,
-                page_size=page_size,
-                page_number=page_number
-            )
+        params = QueryParams(
+            query=person_id,
+            page_size=page_size,
+            page_number=page_number
         )
+        query = query_factory(self.searcher, FilmsByPersonIDQuery, params)
+
         data = await self.searcher.search('film', query)
 
         films = [Film(**row) for row in data]

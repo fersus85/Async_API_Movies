@@ -6,8 +6,7 @@ from fastapi import Depends
 from redis.asyncio import Redis
 
 from db import get_search_engine, ISearchEngine, QueryParams, IQuery, \
-    SortableQueryParams
-from db.elastic import ElasticFilmQuery, ElasticPopularFilmQuery
+    SortableQueryParams, query_factory, FilmQuery, PopularFilmQuery
 from db.redis import cache_method, get_redis
 from models.film import Film
 from services.base import BaseService
@@ -34,14 +33,14 @@ class FilmService(BaseService):
         Возвращает:
         Список с фильмами
         """
-        query = ElasticPopularFilmQuery(
-            SortableQueryParams(
-                query=genre,
-                page_size=page_size,
-                page_number=page_number,
-                sort=sort
-            )
+        params = SortableQueryParams(
+            query=genre,
+            page_size=page_size,
+            page_number=page_number,
+            sort=sort
         )
+        query = query_factory(self.searcher, PopularFilmQuery, params)
+
         data = await self.searcher.search(self.data_source, query)
 
         films = [Film(**row) for row in data]
@@ -56,11 +55,13 @@ class FilmService(BaseService):
                    query: str,
                    page_size: int,
                    page_number: int) -> IQuery:
-        return ElasticFilmQuery(QueryParams(
+        params = QueryParams(
             query=query,
             page_size=page_size,
             page_number=page_number
-        ))
+        )
+
+        return query_factory(self.searcher, FilmQuery, params)
 
 
 @lru_cache

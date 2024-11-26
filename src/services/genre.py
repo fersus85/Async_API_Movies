@@ -4,8 +4,8 @@ from functools import lru_cache
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from db import get_search_engine, ISearchEngine, IQuery, QueryParams
-from db.elastic import ElasticGenreQuery
+from db import get_search_engine, ISearchEngine, IQuery, QueryParams, \
+    query_factory, GenreQuery
 from db.redis import cache_method, get_redis
 from models.genre import Genre
 from services.base import BaseService
@@ -27,11 +27,13 @@ class GenreService(BaseService):
                    query: str,
                    page_size: int,
                    page_number: int) -> IQuery:
-        return ElasticGenreQuery(QueryParams(
+        params = QueryParams(
             query=query,
             page_size=page_size,
             page_number=page_number
-        ))
+        )
+
+        return query_factory(self.searcher, GenreQuery, params)
 
 
 @lru_cache
