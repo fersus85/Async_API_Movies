@@ -1,9 +1,9 @@
-import pytest_asyncio
 import asyncio
 
-from elasticsearch import AsyncElasticsearch
 import aiohttp
-
+import pytest_asyncio
+from elasticsearch import AsyncElasticsearch
+from redis.asyncio import Redis
 from tests.functional.settings import test_settings
 
 
@@ -31,6 +31,18 @@ async def es_client():
     await es_client.close()
 
 
+@pytest_asyncio.fixture(name="redis_client", scope="session")
+async def redis_client():
+    if test_settings.SERVICE_URL == "http://localhost:8000":
+        client = Redis(host="localhost", port=test_settings.REDIS_PORT)
+        yield client
+        await client.aclose()
+    else:
+        client = Redis(host="redis", port=test_settings.REDIS_PORT)
+        yield client
+        await client.aclose()
+
+
 @pytest_asyncio.fixture(name="es_write_data")
 def es_write_data(es_client: AsyncElasticsearch):
     async def inner(data: dict):
@@ -48,8 +60,8 @@ def es_write_data(es_client: AsyncElasticsearch):
 
 @pytest_asyncio.fixture(name="make_get_request")
 def make_get_request(aiohttp_client: aiohttp.ClientSession):
-    async def inner(data: str):
-        url = test_settings.SERVICE_URL + f"/api/v1/persons/{data}"
+    async def inner(service: str, data: str):
+        url = test_settings.SERVICE_URL + f"/api/v1/{service}s/{data}"
         response = await aiohttp_client.get(url)
         return response
 

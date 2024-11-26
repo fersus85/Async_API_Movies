@@ -1,5 +1,7 @@
-import pytest
 from typing import Dict
+
+import pytest
+from tests.functional.settings import test_settings
 
 
 @pytest.mark.parametrize(
@@ -20,7 +22,7 @@ async def test_search_person_by_id(
     make_get_request, query_data: str, exp_answer: Dict
 ):
 
-    response = await make_get_request(query_data)
+    response = await make_get_request(test_settings.ES_PERSON_IDX, query_data)
 
     body = await response.json()
     status = response.status
