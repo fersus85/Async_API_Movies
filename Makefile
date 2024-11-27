@@ -10,19 +10,19 @@ all: up
 
 # Запуск приложения
 up:
-	@docker-compose up -d --build
+	@docker compose up -d --build
 
 # Запуск тестов в докере
 test:
 	@echo "Запуск тестов в докере..."
 	@cd $(TEST_PATH) \
-	&& docker-compose -f docker-compose.local_test.yml -f docker-compose.yml up -d --build
+	&& docker compose -f docker-compose.local_test.yml -f docker-compose.yml up -d --build
 
 # Поднятие инфраструктуры для запуска тестов локально
 test-local-up:
 	@echo "Поднятие инфраструктуры для запуска тестов локально..."
 	@cd $(TEST_PATH) && \
-	docker-compose -f docker-compose.local_test.yml up -d --build
+	docker compose -f docker-compose.local_test.yml up -d --build
 
 # Запуск тестов локально
 test-local-run:
@@ -55,7 +55,7 @@ format:
 # Очистка
 clean:
 	@echo "Очистка временных файлов и контейнеров..."
-	@docker-compose down -v
+	@docker compose down -v
 	@find . -type f -name '*.pyc' -delete
 	@find . -type d -name '__pycache__' -delete
 
