@@ -1,0 +1,44 @@
+name: Async-API-tests-local
+
+services:
+
+  elastic:
+    image: elasticsearch:8.6.2
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: false
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: curl -s http://elastic:9200 >/dev/null || exit 1
+      interval: 20s
+      timeout: 10s
+      retries: 10
+    restart: always
+
+  redis:
+    image: redis:7.4.1
+    ports:
+      - "6379:6379"
+
+  fastapi:
+    build:
+      context: ../../.
+      target: final
+    image: fastapi-service
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      SERVICE_URL: "http://localhost:8000"     
+    depends_on:
+      - elastic
+      - redis
+  
+  test_dump:
+    build: test_dump
+    volumes:
+      - ./test_dump:/test_dump
+    depends_on:
+      elastic:
+        condition: service_healthy
