@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Any, List, Dict, Type
+from typing import Optional, Any, List, Dict, Type, Union
 
 from pydantic import BaseModel, Field
 
@@ -197,11 +197,13 @@ class ISearchEngine(ABC):
         pass
 
 
-def query_factory(search_engine_: Type[ISearchEngine] | ISearchEngine,
+def query_factory(search_engine_: Union[Type[ISearchEngine], ISearchEngine],
                   query_cls: Type[IQuery],
                   params: QueryParams) -> IQuery:
     if isinstance(search_engine_, ISearchEngine):
         search_engine_cls = type(search_engine_)
+    else:
+        search_engine_cls = search_engine_
 
     query_classes = get_all_subclasses(query_cls)
     linked_query = [cls for cls in query_classes
