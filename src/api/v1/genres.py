@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from schemas.genre import GenreSchema
 from services.genre import GenreService, get_genre_service
 import utils.response_getter as rg
+from utils.film_utils import validate_page_number
 
 router = APIRouter()
 
@@ -31,11 +32,7 @@ async def get_genres(
 
     max_pages = (total + page_size - 1) // page_size
 
-    if page_number > max_pages:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=f"Страница: {page_number} превысила маскимум: {max_pages}",
-        )
+    validate_page_number(page_number, max_pages)
 
     genre_list = await genre_service.search("", page_size, page_number)
 
