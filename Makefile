@@ -1,4 +1,4 @@
-.PHONY: up test install test-local-up test-local-run clean lint format
+.PHONY: up test install test-local-up test-local-run clean-local clean-docker lint format down
 
 PYTHON = python3
 TEST_PATH = $(CURDIR)/tests/functional
@@ -11,6 +11,13 @@ all: up
 # Запуск приложения
 up:
 	@docker compose up -d --build
+
+# Очистка после остановки приложения
+down:
+	@echo "Очистка временных файлов и контейнеров..."
+	@docker compose down -v
+	@find . -type f -name '*.pyc' -delete
+	@find . -type d -name '__pycache__' -delete
 
 # Запуск тестов в докере
 test:
@@ -52,9 +59,19 @@ format:
 	@echo "Запуск форматирования с помощью black..."
 	@$(PYTHON) -m black $(BLACK_LINE_LENGTH) $(SRC_DIR) $(TEST_DIR)
 
-# Очистка
-clean:
+# Очистка после локального тестирования
+clean-local:
 	@echo "Очистка временных файлов и контейнеров..."
+	@docker compose -f $(TEST_PATH)/docker-compose.local_test.yml down -v || true
+	@docker compose down -v
+	@find . -type f -name '*.pyc' -delete
+	@find . -type d -name '__pycache__' -delete
+
+# Очистка после тестирования в докере
+clean-docker:
+	@echo "Очистка временных файлов и контейнеров..."
+	@docker compose -f $(TEST_PATH)/docker-compose.local_test.yml -f \
+	$(TEST_PATH)/docker-compose.yml down -v || true
 	@docker compose down -v
 	@find . -type f -name '*.pyc' -delete
 	@find . -type d -name '__pycache__' -delete
@@ -63,6 +80,7 @@ clean:
 help:
 	@echo "Доступные команды:"
 	@echo "  make up             - Запуск приложения"
+	@echo "  make down           - Остановка приложения и очиска"
 	@echo "  make test           - Запуск тестов в докере"
 	@echo "  make test-local-up  - Поднятие инфраструктуры для запуска тестов"
 	@echo "  make test-local-run - Запуск тестов локально"
@@ -70,4 +88,5 @@ help:
 	@echo "  make install-dev    - Установка зависимостей dev"
 	@echo "  make lint           - Запуск линтера"
 	@echo "  make format         - Автоформатирование кода"
-	@echo "  make clean          - Очистка временных файлов"
+	@echo "  make clean-local    - Очистка временных файлов и контейнеров после запуска тестов локально"
+	@echo "  make clean-docker   - Очистка временных файлов и контейнеров после запуска тестов в докере"
