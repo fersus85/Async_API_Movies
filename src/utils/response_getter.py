@@ -78,7 +78,8 @@ def search_film_response() -> Dict[int, Dict]:
     return {
         200: {
             "description": "Успешный ответ, возвращает список найденных\
-                  фильмов.",
+                  фильмов или пустой список, если фильмов с заданными \
+                    критериями нет",
             "content": {"application/json": {"example": film_list_example}},
         },
         400: {
@@ -87,15 +88,6 @@ def search_film_response() -> Dict[int, Dict]:
             "content": {
                 "application/json": {
                     "example": {"detail": "Некорректный запрос"}
-                }
-            },
-        },
-        404: {
-            "description": "Фильмы не найдены. Возвращается, если \
-                    нет фильмов, соответствующих критериям поиска.",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Фильмы не найдены"}
                 }
             },
         },
