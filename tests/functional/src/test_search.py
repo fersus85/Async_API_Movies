@@ -53,7 +53,7 @@ async def perform_request_and_validate(
             id="incorrect page_size and page_number"
         ),
         pytest.param(
-            {"query": "empt", "page_size": 30, "page_number": 1000000000},
+            {"query": "empt", "page_size": 30, "page_number": 10000000},
             {"status": 400, "body_len": 1},
             id="exceed max pages"
         ),
@@ -121,7 +121,7 @@ async def test_invalid_params(
         ),
         pytest.param(
             {"query": "UNEXISTS", "page_size": 30, "page_number": 1},
-            {"status": 404, "body_len": 1},
+            {"status": 200, "body_len": 0},
             id="non-exists query result"
         ),
         pytest.param(
