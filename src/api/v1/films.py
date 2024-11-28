@@ -57,9 +57,7 @@ async def search_in_films(
     logger.debug("Start searching by query")
     result = await film_service.search(query, page_size, page_number)
     if not result:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Films not found"
-        )
+        return []
 
     logger.debug("Start creating response list")
     resp_list: List[FilmSchema] = await get_response_list(lst=result)
