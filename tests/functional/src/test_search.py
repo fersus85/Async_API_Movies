@@ -186,7 +186,8 @@ async def test_person_search_simple(
 def multi_word_check(query: str, response: List[Dict[str, str]]) -> bool:
     for row in response:
         title = row.get("title")
-        if not any(split.lower() in title.lower() for split in str(query).split(' ')):
+        if not any(split.lower() in title.lower()
+                   for split in str(query).split(' ')):
             return False
 
     return True
@@ -197,12 +198,14 @@ def multi_word_check(query: str, response: List[Dict[str, str]]) -> bool:
     [
         pytest.param(
             {"query": "Star", "page_size": 30, "page_number": 1},
-            lambda query, response: all(query.lower() in row["title"].lower() for row in response),
+            lambda query, response: all(query.lower() in row["title"].lower()
+                                        for row in response),
             id="simple query"
         ),
         pytest.param(
             {"query": "sTAr", "page_size": 30, "page_number": 1},
-            lambda query, response: all(query.lower() in row["title"].lower() for row in response),
+            lambda query, response: all(query.lower() in row["title"].lower()
+                                        for row in response),
             id="case insensitive query"
         ),
         pytest.param(
@@ -226,7 +229,7 @@ async def test_film_search_predicate(
 
     body = await response.json()
 
-    assert predicate(query_data.get("query"), body) == True
+    assert predicate(query_data.get("query"), body) is True
 
 
 @pytest.mark.parametrize(
