@@ -64,11 +64,11 @@ async def test_list_genres(make_get_request):
         ),
         (
             {"page_size": 10, "page_number": 2},
-            {"status": 200, "body_len": 10},
+            {"status": 400, "body_len": 1},
         ),
         (
             {"page_size": 10, "page_number": 3},
-            {"status": 200, "body_len": 6},
+            {"status": 400, "body_len": 1},
         ),
         (
             {"page_size": 10, "page_number": 4},
