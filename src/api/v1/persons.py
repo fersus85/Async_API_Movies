@@ -3,9 +3,10 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+import utils.response_getter as rg
 from schemas.person import FilmByPersonSchema, PersonFilmSchema, PersonSchema
 from services.person import PersonService, get_person_service
-import utils.response_getter as rg
+from utils.film_utils import validate_page_number
 
 router = APIRouter()
 
@@ -16,7 +17,7 @@ router = APIRouter()
     summary="Поиск фильмов",
     description="Полнотекстовый поиск по персонам, \
                 возвращает id персоны и список с его фильмами",
-    responses=rg.search_person_response()
+    responses=rg.search_person_response(),
 )
 async def search_persons(
     query: str,
@@ -37,6 +38,10 @@ async def search_persons(
     Возвращает:
     Список моделей PersonSchema
     """
+
+    total = await person_service.get_total_persons_count()
+    max_pages = (total + page_size - 1) // page_size
+    validate_page_number(page_number, max_pages)
 
     person_list = await person_service.search(query, page_size, page_number)
 
@@ -64,7 +69,7 @@ async def search_persons(
     summary="Поиск персоны по id.",
     description="Находит персону по id и возвращает\
                 детальную информацию о ней.",
-    responses=rg.get_person_by_id_response()
+    responses=rg.get_person_by_id_response(),
 )
 async def get_person_by_id(
     person_id: str, person_service: PersonService = Depends(get_person_service)
@@ -101,7 +106,7 @@ async def get_person_by_id(
     summary="Поиск фильмов по персоне",
     description="Находит персону по id и возвращает список фильмов\
                  с участием персоны",
-    responses=rg.get_films_by_person()
+    responses=rg.get_films_by_person(),
 )
 async def get_films_by_person_id(
     person_id: str,
