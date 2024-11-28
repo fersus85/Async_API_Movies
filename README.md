@@ -1,5 +1,5 @@
-# Проектная работа 4 спринта: AsyncAPI movies services
-**Ссылка на приватный репозиторий с командной работой: https://github.com/fersus85/Async_API_sprint_1**
+# Проектная работа 5 спринта: AsyncAPI movies services + tests
+**Ссылка на приватный репозиторий с командной работой: https://github.com/fersus85/Async_API_sprint_2**
 ## Описание
 Асинхронный API для кинотеатра.
 - Маршрут *api/v1/films/search* - ищет фильмы в БД по ключевому слову
@@ -10,6 +10,11 @@
 - Маршрут *api/v1/persons/search* - ищет людей по имени
 - Маршрут *api/v1/persons/{person_id}* - ищет персону по id в БД
 - Маршрут *api/v1/persons/{person_id}/film* - ищет фильмы с участием персоны по её id
+## Документация
+Подробную документацию в формате OpenAI с примерами запросов и ответов можно посмотреть, запустив проект (см. настройка, установка и запуск) и перейдя по адресу в браузере:
+```bash
+  http://127.0.0.1:80/api/openapi
+```
 ## Стек
 - Python 3.9
 - FastAPI
@@ -18,18 +23,74 @@
 - Для кеширования данных используется Redis Cluster
 - Nginx
 - Docker
+## Установка
+Системные требования:
+- Python 3.9
+- Docker
+- Docker Compose
+- утилита make (не обязательно)
 ## Настройки
 Для конфигурации сервиса разместите в директории src файл .env, переместите в него переменные из .env.example
 ## Запуск
 1. Клонируйте репозиторий:
-    ```bash
-    git clone https://github.com/fersus85/Async_API_sprint_1.git
-    ```
+```bash
+  git clone https://github.com/fersus85/Async_API_sprint_2.git
+```
 2. Перейдите в директорию проекта:
-    ```bash
-    cd Async_API_sprint_1
-    ```
+```bash
+  cd Async_API_sprint_1
+```
 3. Запустите docker-compose:
-  ```bash
-    docker compose up -d
-  ```
+```bash
+  docker compose up -d
+```
+или используйте команду
+```bash
+  make up
+```
+## Тестирование
+Есть два сценария для тестирования:
+- с запуском тестов в контейнере докер:
+```bash
+  cd /tests/functional \
+  && docker compose -f docker-compose.local_test.yml -f docker-compose.yml up -d --build
+```
+или используйте команду:
+```bash
+  make test
+```
+- с запуском тестов локально:
+1. Поднимите инфратсруктуру для тестов.
+```bash
+  pip install -r requirements.txt
+  pip install -r requirements-dev.txt
+  cd /tests/functional \
+  &&docker compose -f docker-compose.local_test.yml up -d --build
+```
+или используйте команды:
+```bash
+  make install-dev
+  make test-local-up
+```
+2. Запустите тесты
+```bash
+  SERVICE_URL=http://localhost:8000 \
+  PYTHONPATH=src pytest /tests/functional
+```
+с make:
+```bash
+  make test-local-run
+```
+Тесты в проекте охватывают основные функциональные возможности API для работы с фильмами, жанрами и персонами. Они проверяют корректность работы эндпоинтов, а также функциональность кэширования.
+### Важные сценарии
+Наиболее важные сценарии, которые стоит выделить, включают:
+
+- Успешные запросы: Проверка, что API корректно обрабатывает валидные запросы и возвращает    ожидаемые данные.
+- Обработка ошибок: Проверка, что API правильно реагирует на невалидные запросы (например,    несуществующие ID или некорректный формат).
+- Кэширование: Проверка, что кэширование работает корректно, что позволяет улучшить     производительность API.
+- Пагинация и сортировка: Проверка, что API корректно обрабатывает параметры пагинации и    сортировки, что важно для удобства пользователей.
+## Makefile
+все команды makefile можно увидеть, вызвав
+```bash
+  make help
+```
