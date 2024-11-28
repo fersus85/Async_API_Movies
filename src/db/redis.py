@@ -11,32 +11,32 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractCache(Protocol):
-    '''Абстрактый класс для кэша'''
-    async def set(self, key: str, value: Any, expire: int) -> None:
-        ...
+    """Абстрактый класс для кэша"""
 
-    async def get(self, key: str) -> Optional[Any]:
-        ...
+    async def set(self, key: str, value: Any, expire: int) -> None: ...
+
+    async def get(self, key: str) -> Optional[Any]: ...
 
 
 class RedisCache:
-    '''Реализация кэша с помощью Redis'''
+    """Реализация кэша с помощью Redis"""
+
     def __init__(self, cache_type: Redis) -> None:
         self.cacher = cache_type
 
     async def set(self, key: str, value: Any, expire: int) -> None:
         try:
             await self.cacher.set(key, pickle.dumps(value), ex=expire)
-            logger.debug('Result stored in cache')
+            logger.debug("Result stored in cache")
         except Exception as ex:
-            logger.error('Error storing to cache: %s', ex)
+            logger.error("Error storing to cache: %s", ex)
 
     async def get(self, key: str) -> Optional[Any]:
         try:
             cache_value = await self.cacher.get(key)
             return pickle.loads(cache_value) if cache_value else None
         except Exception as ex:
-            logger.error('Error retrieving from cache: %s', ex)
+            logger.error("Error retrieving from cache: %s", ex)
             return None
 
 
@@ -70,13 +70,13 @@ def cache_method(cache_attr: str, expire: int = 1800):
             cache = getattr(self, cache_attr, None)
 
             if cache is None:
-                raise ValueError('Cache instance is not set')
+                raise ValueError("Cache instance is not set")
 
             key = form_key(func.__name__, args, kwargs)
 
             cache_result = await cache.get(key)
             if cache_result is not None:
-                logger.debug('Response from cache')
+                logger.debug("Response from cache")
                 return cache_result
 
             result = await func(self, *args, **kwargs)

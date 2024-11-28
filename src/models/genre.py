@@ -8,6 +8,7 @@ class GenreBase(BaseModel):
     """
     GenreBase is used to link genre entities with films in the Film model.
     """
+
     id: UUID
     name: str
 

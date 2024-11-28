@@ -5,11 +5,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from schemas.genre import GenreSchema
 from services.genre import GenreService, get_genre_service
+import utils.response_getter as rg
+from utils.film_utils import validate_page_number
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[GenreSchema])
+@router.get(
+    "/",
+    response_model=List[GenreSchema],
+    summary="Все жанры",
+    description="Возвращает все жанры из базы данных",
+    responses=rg.get_genres_response()
+)
 async def get_genres(
     page_size: int = Query(
         50, ge=1, le=50, description="Кол-во жанров в выдаче (1-50)"
@@ -24,11 +32,7 @@ async def get_genres(
 
     max_pages = (total + page_size - 1) // page_size
 
-    if page_number > max_pages:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=f"Страница: {page_number} превысила маскимум: {max_pages}",
-        )
+    validate_page_number(page_number, max_pages)
 
     genre_list = await genre_service.search("", page_size, page_number)
 
@@ -42,12 +46,20 @@ async def get_genres(
     return resp_list
 
 
-@router.get("/{genre_id}/", response_model=GenreSchema)
+@router.get(
+    "/{genre_id}/",
+    response_model=GenreSchema,
+    summary="Поиск жанра по id",
+    description="Ищет в базе данных ES жанр по переданному id",
+    responses=rg.genres_by_id_response()
+)
 async def get_genre_by_id(
     genre_id: str, genre_service: GenreService = Depends(get_genre_service)
 ) -> GenreSchema:
     """
     Обработчик маршрута api/v1/genres/{genre_id},
+
+    - **genre_id**: ID жанра, который нужно получить.
     """
     genre = await genre_service.get_by_id(genre_id)
 

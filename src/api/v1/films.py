@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from schemas.film import FilmDetailSchema, FilmPerson, FilmSchema, GenreFilm
 from services.film import FilmService, get_film_service
-from utils.film_utils import get_response_list
+from utils.film_utils import get_response_list, validate_page_number
+import utils.response_getter as rg
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ VALID_SORT_OPT = (
     summary="Поиск фильмов",
     description="Полнотекстовый поиск по кинопроизведениям, \
                 поля для поиска: title, directors, actors, writers",
+    responses=rg.search_film_response()
 )
 async def search_in_films(
     query: str,
@@ -50,17 +52,12 @@ async def search_in_films(
     """
     total = await film_service.get_total_films_count()
     max_pages = (total + page_size - 1) // page_size
-    if page_number > max_pages:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=f"Страница: {page_number} превысила маскимум: {max_pages}",
-        )
+    validate_page_number(page_number, max_pages)
+
     logger.debug("Start searching by query")
     result = await film_service.search(query, page_size, page_number)
     if not result:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Films not found"
-        )
+        return []
 
     logger.debug("Start creating response list")
     resp_list: List[FilmSchema] = await get_response_list(lst=result)
@@ -75,6 +72,7 @@ async def search_in_films(
     summary="Популярные фильмы",
     description="Возращает сортированные фильмы\
                   с возможностью фильтрации по жанру",
+    responses=rg.get_film_list_response()
 )
 async def get_popular_films(
     sort: str = "-imdb_rating",
@@ -99,11 +97,8 @@ async def get_popular_films(
     """
     total = await film_service.get_total_films_count()
     max_pages = (total + page_size - 1) // page_size
-    if page_number > max_pages:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=f"Страница: {page_number} превысила маскимум: {max_pages}",
-        )
+    validate_page_number(page_number, max_pages)
+
     if sort not in VALID_SORT_OPT:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
@@ -129,6 +124,7 @@ async def get_popular_films(
     summary="Находит фильм по id",
     description="Находит фильм по id и возвращает \
                 детальную информацию о нем",
+    responses=rg.get_film_by_id_response()
 )
 async def get_film_by_id(
     film_id: str, film_service: FilmService = Depends(get_film_service)

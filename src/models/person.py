@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-PERSON_ROLES = Literal['actor', 'director', 'writer']
+PERSON_ROLES = Literal["actor", "director", "writer"]
 
 
 class PersonFilm(BaseModel):
@@ -15,6 +15,7 @@ class PersonBase(BaseModel):
     """
     PersonBase is used to link person entities with films in the Film model.
     """
+
     id: UUID
     full_name: str
 
