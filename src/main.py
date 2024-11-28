@@ -11,13 +11,14 @@ from elasticsearch import AsyncElasticsearch
 from redis.asyncio import Redis
 
 import db.searcher as searcher
+import db.cacher as cacher
 from db import elastic
 from db import redis
 from db.searcher.elastic_searcher import ElasticSearchEngine
 from api.v1 import films
 from api.v1 import genres
 from api.v1 import persons
-
+from src.db.redis import RedisCache
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     redis.redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+    cacher.cacher = RedisCache(redis.redis)
     elastic.es_client = AsyncElasticsearch(
         hosts=[f'http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}']
         )
