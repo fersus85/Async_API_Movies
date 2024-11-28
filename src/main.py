@@ -10,8 +10,10 @@ from core.log_config import setup_logging
 from elasticsearch import AsyncElasticsearch
 from redis.asyncio import Redis
 
+import db.searcher as searcher
 from db import elastic
 from db import redis
+from db.searcher.elastic_searcher import ElasticSearchEngine
 from api.v1 import films
 from api.v1 import genres
 from api.v1 import persons
@@ -24,14 +26,15 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     redis.redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-    elastic.es = AsyncElasticsearch(
-        hosts=[f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}"]
-    )
-    logger.debug("Successfully connected to Redis and Elasticsearch.")
+    elastic.es_client = AsyncElasticsearch(
+        hosts=[f'http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}']
+        )
+    searcher.search_engine = ElasticSearchEngine(elastic.es_client)
+    logger.debug('Successfully connected to Redis and Elasticsearch.')
     yield
     logger.debug("Closing connections")
     await redis.redis.close()
-    await elastic.es.close()
+    await elastic.es_client.close()
 
 
 app = FastAPI(
