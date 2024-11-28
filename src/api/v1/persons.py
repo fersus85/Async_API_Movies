@@ -5,11 +5,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from schemas.person import FilmByPersonSchema, PersonFilmSchema, PersonSchema
 from services.person import PersonService, get_person_service
+import utils.response_getter as rg
 
 router = APIRouter()
 
 
-@router.get("/search", response_model=List[PersonSchema])
+@router.get(
+    "/search",
+    response_model=List[PersonSchema],
+    summary="Поиск фильмов",
+    description="Полнотекстовый поиск по персонам, \
+                возвращает id персоны и список с его фильмами",
+    responses=rg.search_person_response()
+)
 async def search_persons(
     query: str,
     page_size: int = Query(
@@ -50,7 +58,14 @@ async def search_persons(
     return persons
 
 
-@router.get("/{person_id}", response_model=PersonSchema)
+@router.get(
+    "/{person_id}",
+    response_model=PersonSchema,
+    summary="Поиск персоны по id.",
+    description="Находит персону по id и возвращает\
+                детальную информацию о ней.",
+    responses=rg.get_person_by_id_response()
+)
 async def get_person_by_id(
     person_id: str, person_service: PersonService = Depends(get_person_service)
 ) -> PersonSchema:
@@ -80,7 +95,14 @@ async def get_person_by_id(
     )
 
 
-@router.get("/{person_id}/film", response_model=List[FilmByPersonSchema])
+@router.get(
+    "/{person_id}/film",
+    response_model=List[FilmByPersonSchema],
+    summary="Поиск фильмов по персоне",
+    description="Находит персону по id и возвращает список фильмов\
+                 с участием персоны",
+    responses=rg.get_films_by_person()
+)
 async def get_films_by_person_id(
     person_id: str,
     page_size: int = Query(
