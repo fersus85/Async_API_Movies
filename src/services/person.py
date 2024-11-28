@@ -153,8 +153,7 @@ class PersonService(BaseService):
     @cache_method(cache_attr="cacher")
     async def get_total_persons_count(self) -> int:
         "Функция возвращает кол-во персон в ES"
-        resp = await self.elastic.count(index=self.es_index)
-        return resp["count"]
+        return await self.get_count()
 
 
 @lru_cache
