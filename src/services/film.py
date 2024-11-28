@@ -5,10 +5,11 @@ from typing import List, Optional
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from db import get_search_engine, ISearchEngine, QueryParams, IQuery, \
-    SortableQueryParams, query_factory, FilmQuery, PopularFilmQuery
 from db.redis import cache_method, get_redis
+from db.searcher import query_factory, IQuery, get_search_engine, ISearchEngine
+from db.searcher.query import PopularFilmQuery, FilmQuery
 from models.film import Film
+from models.query_params import SortableQueryParams, QueryParams
 from services.base import BaseService
 
 logger = logging.getLogger(__name__)

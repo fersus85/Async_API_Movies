@@ -6,11 +6,12 @@ from fastapi import Depends
 from pydantic import BaseModel
 from redis.asyncio import Redis
 
-from db import get_search_engine, ISearchEngine, IQuery, QueryParams, \
-    query_factory, PersonQuery, FilmsByPersonIDQuery
 from db.redis import cache_method, get_redis
+from db.searcher import IQuery, query_factory, ISearchEngine, get_search_engine
+from db.searcher.query import PersonQuery, FilmsByPersonIDQuery
 from models.film import Film, FilmShort
 from models.person import Person, PersonFilm
+from models.query_params import QueryParams
 from services.base import BaseService
 
 logger = logging.getLogger(__name__)

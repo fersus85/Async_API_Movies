@@ -4,15 +4,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-import db
 from core.config import settings
 from core.log_config import setup_logging
 
 from elasticsearch import AsyncElasticsearch
 from redis.asyncio import Redis
 
+import db.searcher as searcher
 from db import elastic
 from db import redis
+from db.searcher.elastic_searcher import ElasticSearchEngine
 from api.v1 import films
 from api.v1 import genres
 from api.v1 import persons
@@ -28,7 +29,7 @@ async def lifespan(app: FastAPI):
     elastic.es_client = AsyncElasticsearch(
         hosts=[f'http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}']
         )
-    db.search_engine = elastic.ElasticSearchEngine(elastic.es_client)
+    searcher.search_engine = ElasticSearchEngine(elastic.es_client)
     logger.debug('Successfully connected to Redis and Elasticsearch.')
     yield
     logger.debug('Closing connections')

@@ -4,10 +4,11 @@ from functools import lru_cache
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from db import get_search_engine, ISearchEngine, IQuery, QueryParams, \
-    query_factory, GenreQuery
 from db.redis import cache_method, get_redis
+from db.searcher import IQuery, query_factory, get_search_engine, ISearchEngine
+from db.searcher.query import GenreQuery
 from models.genre import Genre
+from models.query_params import QueryParams
 from services.base import BaseService
 
 logger = logging.getLogger(__name__)

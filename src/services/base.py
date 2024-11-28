@@ -4,8 +4,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from db import ISearchEngine, IQuery
 from db.redis import AbstractCache, RedisCache, cache_method
+from db.searcher import ISearchEngine, IQuery
 
 logger = logging.getLogger(__name__)
 
