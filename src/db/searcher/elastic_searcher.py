@@ -15,7 +15,15 @@ logger = logging.getLogger(__name__)
 
 
 class ElasticSearchEngine(ISearchEngine):
+    """
+    ElasticSearchEngine is an implementation of the ISearchEngine interface,
+    designed to interact with an Elasticsearch cluster using
+    an AsyncElasticsearch client.
+    """
     def __init__(self, client: Any):
+        """
+        Initializes the ElasticSearchEngine with an AsyncElasticsearch client.
+        """
         if not isinstance(client, AsyncElasticsearch):
             raise TypeError("ElasticSearch client must"
                             " be an AsyncElasticsearch instance")
@@ -23,6 +31,10 @@ class ElasticSearchEngine(ISearchEngine):
         self.client = client
 
     async def get(self, data_source: str, id: str) -> Optional[Dict[str, Any]]:
+        """
+        Asynchronously retrieves a document from a
+        specified Elasticsearch index by its ID.
+        """
         logger.debug("get_by_id: %s", id)
 
         try:
@@ -34,6 +46,10 @@ class ElasticSearchEngine(ISearchEngine):
     async def search(self,
                      data_source: str,
                      search_query: IElasticQuery) -> List[Dict[str, Any]]:
+        """
+        Executes a search query against a specified Elasticsearch
+        index using an instance of IElasticQuery.
+        """
         query = search_query.query
 
         if not isinstance(search_query, IElasticQuery):
@@ -49,6 +65,10 @@ class ElasticSearchEngine(ISearchEngine):
             return []
 
     async def count(self, data_source: str) -> int:
+        """
+        Asynchronously counts the number
+        of documents in a specified Elasticsearch index.
+        """
         resp = await self.client.count(index=data_source)
         return resp["count"]
 
