@@ -1,12 +1,17 @@
 from typing import Dict, Any, Callable, List
 from urllib.parse import urlencode
+from uuid import uuid4
 
 import pytest
 from aiohttp import ClientResponse
 from pydantic import BaseModel
+from redis.asyncio import Redis
 
-from src.schemas.film import FilmSchema
-from src.schemas.person import PersonSchema
+from db.redis import form_key, RedisCache
+from schemas.film import FilmSchema
+from schemas.person import PersonSchema
+from models.film import Film
+from models.person import Person
 from tests.functional.settings import test_settings
 
 
@@ -47,23 +52,21 @@ async def perform_request_and_validate(
             {"status": 422, "body_len": 1},
             id="incorrect page_size and page_number"
         ),
-        # TODO не работает в persons. Возвращает 500
-        # pytest.param(
-        #     {"query": "empt", "page_size": 30, "page_number": 1000000000},
-        #     {"status": 400, "body_len": 1},
-        #     id="exceed max pages"
-        # ),
+        pytest.param(
+            {"query": "empt", "page_size": 30, "page_number": 1000000000},
+            {"status": 400, "body_len": 1},
+            id="exceed max pages"
+        ),
         pytest.param(
             {"page_size": 30, "page_number": 1},
             {"status": 422, "body_len": 1},
             id="missing query"
         ),
-        # TODO FIX THIS!
-        # pytest.param(
-        #     {"query": "", "page_size": 30, "page_number": 1},
-        #     {"status": 422, "body_len": 1},
-        #     id="empty query"
-        # ),
+        pytest.param(
+            {"query": "", "page_size": 30, "page_number": 1},
+            {"status": 422, "body_len": 1},
+            id="empty query"
+        ),
         pytest.param(
             {"query": "empt", "page_size": "abc", "page_number": 1},
             {"status": 422, "body_len": 1},
@@ -224,6 +227,57 @@ async def test_film_search_predicate(
     body = await response.json()
 
     assert predicate(query_data.get("query"), body) == True
+
+
+@pytest.mark.parametrize(
+    "fake_data, query_data, exp_answer, index",
+    [
+        pytest.param(
+            [
+                Film(id=uuid4(), title="!Super-Star!", directors=[], actors=[],
+                     writers=[], genres=[])
+            ],
+            {"query": "Star", "page_size": 30, "page_number": 1},
+            {"status": 200, "body_len": 1},
+            test_settings.ES_FILM_IDX,
+            id="cache films"
+        ),
+        pytest.param(
+            [
+                Person(id=uuid4(), full_name="Harrison Toyota", films=[]),
+                Person(id=uuid4(), full_name="Toyota Corolla", films=[])
+            ],
+            {"query": "Toyota", "page_size": 30, "page_number": 1},
+            {"status": 200, "body_len": 2},
+            test_settings.ES_PERSON_IDX,
+            id="cache persons"
+        ),
+    ]
+)
+@pytest.mark.asyncio
+async def test_cache(
+        make_get_request: Callable[[str, str], ClientResponse],
+        redis_client: Redis,
+        fake_data: List[BaseModel],
+        query_data: Dict[str, Any],
+        exp_answer: Dict[str, Any],
+        index: str
+):
+    redis_cache = RedisCache(redis_client)
+
+    key = form_key("search",
+                   (query_data["query"],
+                    query_data["page_size"],
+                    query_data["page_number"]),
+                   {})
+
+    await redis_cache.set(key, fake_data, 60)
+
+    await perform_request_and_validate(
+        make_get_request, query_data, exp_answer, index
+    )
+
+    await redis_cache.cacher.delete(key)
 
 
 @pytest.mark.parametrize(
