@@ -152,7 +152,7 @@ def query_factory(search_engine_: Union[Type[ISearchEngine], ISearchEngine],
         IQuery: An instance of the query class associated
                 with the specified search engine.
     """
-    search_engine_cls = type(search_engine_) if not (
+    search_engine_cls = type(search_engine_) if (
         isinstance(search_engine_, ISearchEngine)) else search_engine_
 
     query_classes = get_all_subclasses(query_cls)
