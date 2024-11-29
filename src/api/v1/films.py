@@ -32,7 +32,7 @@ VALID_SORT_OPT = (
     responses=rg.search_film_response()
 )
 async def search_in_films(
-    query: str,
+    query: str = Query(..., description="Ключевое слово для поиска"),
     page_size: int = Query(
         50, ge=1, le=50, description="Кол-во фильмов в выдаче (1-50)"
     ),
@@ -50,6 +50,8 @@ async def search_in_films(
     Возвращает:
     Модель PopularFilmsSchema - список с вложенными фильмами
     """
+    if not query:
+        return []
     total = await film_service.get_total_films_count()
     max_pages = (total + page_size - 1) // page_size
     validate_page_number(page_number, max_pages)

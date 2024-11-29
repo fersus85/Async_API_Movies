@@ -20,7 +20,7 @@ router = APIRouter()
     responses=rg.search_person_response(),
 )
 async def search_persons(
-    query: str,
+    query: str = Query(..., description="Ключевое слово для поиска"),
     page_size: int = Query(
         50, ge=1, le=50, description="Кол-во персон в выдаче (1-50)"
     ),
@@ -38,7 +38,8 @@ async def search_persons(
     Возвращает:
     Список моделей PersonSchema
     """
-
+    if not query:
+        return []
     total = await person_service.get_total_persons_count()
     max_pages = (total + page_size - 1) // page_size
     validate_page_number(page_number, max_pages)
