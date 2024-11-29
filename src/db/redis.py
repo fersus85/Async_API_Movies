@@ -2,23 +2,17 @@ import logging
 import pickle
 from functools import wraps
 from hashlib import sha256
-from typing import Optional, Callable, Any, Protocol
+from typing import Optional, Callable, Any
 from redis.asyncio import Redis
+
+from db.cacher import AbstractCache
 
 redis: Optional[Redis] = None
 
 logger = logging.getLogger(__name__)
 
 
-class AbstractCache(Protocol):
-    """Абстрактый класс для кэша"""
-
-    async def set(self, key: str, value: Any, expire: int) -> None: ...
-
-    async def get(self, key: str) -> Optional[Any]: ...
-
-
-class RedisCache:
+class RedisCache(AbstractCache):
     """Реализация кэша с помощью Redis"""
 
     def __init__(self, cache_type: Redis) -> None:

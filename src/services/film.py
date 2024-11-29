@@ -3,11 +3,11 @@ from functools import lru_cache
 from typing import List, Optional
 
 from fastapi import Depends
-from redis.asyncio import Redis
 
-from db.redis import cache_method, get_redis
+from db.redis import cache_method
 from db.searcher import query_factory, IQuery, get_search_engine, ISearchEngine
 from db.searcher.query import PopularFilmQuery, FilmQuery
+from db.cacher import AbstractCache, get_cacher
 from models.film import Film
 from models.query_params import SortableQueryParams, QueryParams
 from services.base import BaseService
@@ -67,7 +67,7 @@ class FilmService(BaseService):
 
 @lru_cache
 def get_film_service(
-    cacher: Redis = Depends(get_redis),
+    cacher: AbstractCache = Depends(get_cacher),
     searcher: ISearchEngine = Depends(get_search_engine),
 ) -> FilmService:
     """

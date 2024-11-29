@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from db.redis import AbstractCache, RedisCache, cache_method
+from db.redis import AbstractCache, cache_method
 from db.searcher import ISearchEngine, IQuery
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ class BaseService(abc.ABC):
 
     def __init__(self, cache: AbstractCache,
                  search_engine: ISearchEngine):
-        self.cacher = RedisCache(cache)
+        self.cacher = cache
         self.searcher = search_engine
 
     @abc.abstractmethod

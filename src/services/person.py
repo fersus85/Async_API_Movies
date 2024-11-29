@@ -4,11 +4,11 @@ from typing import Dict, List, Any, Optional
 
 from fastapi import Depends
 from pydantic import BaseModel
-from redis.asyncio import Redis
 
-from db.redis import cache_method, get_redis
+from db.redis import cache_method
 from db.searcher import IQuery, query_factory, ISearchEngine, get_search_engine
 from db.searcher.query import PersonQuery, FilmsByPersonIDQuery
+from db.cacher import AbstractCache, get_cacher
 from models.film import Film, FilmShort
 from models.person import Person, PersonFilm
 from models.query_params import QueryParams
@@ -158,7 +158,7 @@ class PersonService(BaseService):
 
 @lru_cache
 def get_person_service(
-    cacher: Redis = Depends(get_redis),
+    cacher: AbstractCache = Depends(get_cacher),
     searcher: ISearchEngine = Depends(get_search_engine),
 ) -> PersonService:
     """
