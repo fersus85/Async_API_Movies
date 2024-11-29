@@ -18,7 +18,7 @@ from db.searcher.elastic_searcher import ElasticSearchEngine
 from api.v1 import films
 from api.v1 import genres
 from api.v1 import persons
-from src.db.redis import RedisCache
+from db.redis import RedisCache
 
 setup_logging()
 logger = logging.getLogger(__name__)

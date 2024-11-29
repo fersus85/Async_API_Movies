@@ -5,7 +5,7 @@ from hashlib import sha256
 from typing import Optional, Callable, Any
 from redis.asyncio import Redis
 
-from src.db.cacher import AbstractCache
+from db.cacher import AbstractCache
 
 redis: Optional[Redis] = None
 
