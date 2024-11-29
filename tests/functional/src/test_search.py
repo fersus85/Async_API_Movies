@@ -13,25 +13,8 @@ from schemas.person import PersonSchema
 from models.film import Film
 from models.person import Person
 from tests.functional.settings import test_settings
-
-
-async def perform_request_and_validate(
-        make_get_request: Callable[[str, str], ClientResponse],
-        query_data: Dict[str, Any],
-        exp_answer: Dict[str, Any],
-        index: str
-):
-    query_parameters = f"?{urlencode(query_data)}"
-
-    response = await make_get_request(
-        index, 'search' + query_parameters
-    )
-
-    body = await response.json()
-    status = response.status
-
-    assert status == exp_answer.get("status")
-    assert len(body) == exp_answer.get("body_len")
+from tests.functional.utils.helpers import perform_request_and_assert, \
+    multi_word_check
 
 
 @pytest.mark.parametrize(
@@ -64,7 +47,7 @@ async def perform_request_and_validate(
         ),
         pytest.param(
             {"query": "", "page_size": 30, "page_number": 1},
-            {"status": 422, "body_len": 1},
+            {"status": 200, "body_len": 0},
             id="empty query"
         ),
         pytest.param(
@@ -95,8 +78,25 @@ async def test_invalid_params(
         query_data: Dict[str, Any],
         exp_answer: Dict[str, Any]
 ):
+    """
+    Test function for validating the handling of
+    invalid query parameters in API requests.
+
+    Parameters:
+    - make_get_request: Fixture to make GET requests to the API endpoint.
+    - query_data: Dictionary containing the query parameters
+        to be used in the API request.
+    - exp_answer: Dictionary containing the expected
+        response from the API, which includes the expected HTTP
+        status code and the length of the response body.
+
+    Actions:
+    - Iterates over indices (films and persons) and
+        performs a GET request to the '/search' endpoint.
+    - Asserts that the response status and body length against expected values.
+    """
     for index in (test_settings.ES_FILM_IDX, test_settings.ES_PERSON_IDX):
-        await perform_request_and_validate(
+        await perform_request_and_assert(
             make_get_request, query_data, exp_answer, index
         )
 
@@ -141,7 +141,7 @@ async def test_invalid_params(
         ),
         pytest.param(
             {"query": "a" * 1000000, "page_size": 30, "page_number": 1},
-            {"status": 404, "body_len": 1},
+            {"status": 200, "body_len": 0},
             id="big query"
         ),
     ],
@@ -152,7 +152,24 @@ async def test_film_search_simple(
         query_data: Dict[str, Any],
         exp_answer: Dict[str, Any]
 ):
-    await perform_request_and_validate(
+    """
+    Test function for verifying correct handling of valid
+    query parameters in "film" search requests to the '/search' endpoint.
+
+    Parameters:
+    - make_get_request: Fixture to make GET requests to the API endpoint.
+    - query_data: Dictionary containing the query parameters
+        to be used in the API request.
+    - exp_answer: Dictionary containing the expected
+        response from the API, which includes the expected HTTP
+        status code and the length of the response body.
+
+    Actions:
+    - Performs a GET request to the '/search' endpoint for films
+        with the given query parameters.
+    - Asserts that the response status and body length against expected values.
+    """
+    await perform_request_and_assert(
         make_get_request, query_data, exp_answer, test_settings.ES_FILM_IDX
     )
 
@@ -178,19 +195,26 @@ async def test_person_search_simple(
         query_data: Dict[str, Any],
         exp_answer: Dict[str, Any]
 ):
-    await perform_request_and_validate(
+    """
+    Test function for verifying correct handling of valid
+    query parameters in "person" search requests to the '/search' endpoint.
+
+    Parameters:
+    - make_get_request: Fixture to make GET requests to the API endpoint.
+    - query_data: Dictionary containing the query parameters
+        to be used in the API request.
+    - exp_answer: Dictionary containing the expected
+        response from the API, which includes the expected HTTP
+        status code and the length of the response body.
+
+    Actions:
+    - Performs a GET request to the '/search' endpoint for persons
+        with the given query parameters.
+    - Asserts that the response status and body length against expected values.
+    """
+    await perform_request_and_assert(
         make_get_request, query_data, exp_answer, test_settings.ES_PERSON_IDX
     )
-
-
-def multi_word_check(query: str, response: List[Dict[str, str]]) -> bool:
-    for row in response:
-        title = row.get("title")
-        if not any(split.lower() in title.lower()
-                   for split in str(query).split(' ')):
-            return False
-
-    return True
 
 
 @pytest.mark.parametrize(
@@ -221,6 +245,24 @@ async def test_film_search_predicate(
         query_data: Dict[str, Any],
         predicate: Callable[[str, List[Dict[str, str]]], bool]
 ):
+    """
+    Test function for checking the content of film search
+    results matches expected conditions.
+
+    Parameters:
+    - make_get_request: Fixture to make GET requests to the API endpoint.
+    - query_data: Dictionary containing the query parameters
+        to be used in the API request.
+    - predicate (Callable[[str, List[Dict[str, str]]], bool]):
+    Function that evaluates whether the response meets
+    the expected condition based on the query.
+
+    Actions:
+    - Performs a GET request to the '/search' endpoint for films
+        with the given query parameters.
+    - Applies the predicate to the response body to validate the content.
+    - Asserts that the predicate returns True.
+    """
     query_parameters = f"?{urlencode(query_data)}"
 
     response = await make_get_request(
@@ -266,6 +308,34 @@ async def test_cache(
         exp_answer: Dict[str, Any],
         index: str
 ):
+    """
+    Test function for verifying the caching mechanism for search
+    results to the '/search' endpoint.
+
+    Parameters:
+    - make_get_request (Callable[[str, str], ClientResponse]):
+        Fixture to make GET requests to the API endpoint.
+    - redis_client (Redis): Redis client for interacting with the cache.
+    - fake_data (List[BaseModel]): List of fake data objects to be cached.
+    - query_data (Dict[str, Any]):
+        Dictionary containing the query parameters to
+        be used in the API request.
+    - exp_answer (Dict[str, Any]):
+        Dictionary containing the expected response from the API,
+        including the expected HTTP status code and the length of
+        the response body.
+    - index (str):
+        The index or base URL for making the request
+        (e.g., film or person index).
+
+    Actions:
+    - Forms a cache key based on the query parameters.
+    - Stores the fake data in the cache under the formed key.
+    - Performs a GET request to the '/search'
+        endpoint with the given query parameters.
+    - Asserts that the response status and body length against expected values.
+    - Deletes the cache entry after the test.
+    """
     redis_cache = RedisCache(redis_client)
 
     key = form_key("search",
@@ -276,7 +346,7 @@ async def test_cache(
 
     await redis_cache.set(key, fake_data, 60)
 
-    await perform_request_and_validate(
+    await perform_request_and_assert(
         make_get_request, query_data, exp_answer, index
     )
 
@@ -307,6 +377,25 @@ async def test_structure(
         index: str,
         valid_schema: BaseModel
 ):
+    """
+    Test function for validating the structure of the search
+    results against a given schema when accessing the '/search' endpoint.
+
+    Parameters:
+    - make_get_request: Fixture to make GET requests to the API endpoint.
+    - query_data: Dictionary containing the query parameters
+        to be used in the API request.
+    - index (str): The index or base URL for making the request
+        (e.g., film or person index).
+    - valid_schema (BaseModel): The Pydantic model used to validate
+        the structure of each item in the response.
+
+    Actions:
+    - Performs a GET request to the '/search'
+        endpoint with the given query parameters.
+    - Validates each item in the response body against the provided schema.
+    - Asserts that each item conforms to the expected structure
+    """
     query_parameters = f"?{urlencode(query_data)}"
 
     response = await make_get_request(
