@@ -22,7 +22,7 @@ class GenreService(BaseService):
 
     @cache_method(cache_attr="cacher")
     async def get_total_genres_count(self) -> int:
-        "Функция возвращает кол-во жанров в ES"
+        """Функция возвращает кол-во жанров в ES"""
         return await self.get_count()
 
     def _get_query(self,

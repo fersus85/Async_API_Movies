@@ -152,7 +152,7 @@ class PersonService(BaseService):
 
     @cache_method(cache_attr="cacher")
     async def get_total_persons_count(self) -> int:
-        "Функция возвращает кол-во персон в ES"
+        """Функция возвращает кол-во персон в ES"""
         return await self.get_count()
 
 

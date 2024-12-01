@@ -49,7 +49,7 @@ class FilmService(BaseService):
         return films
 
     async def get_total_films_count(self) -> int:
-        "Функция возвращает кол-во фильмов в ES"
+        """Функция возвращает кол-во фильмов в ES"""
         return await self.get_count()
 
     def _get_query(self,
