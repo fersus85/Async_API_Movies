@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional, Callable, AsyncGenerator, Dict, Any, List
+from typing import Optional, Callable, AsyncGenerator, List
 from uuid import uuid4
 
 import aiohttp
@@ -82,37 +82,6 @@ async def redis_client() -> AsyncGenerator[Redis, None]:
         client = Redis(host="redis", port=test_settings.REDIS_PORT)
         yield client
         await client.aclose()
-
-
-@pytest_asyncio.fixture(name="es_write_data")
-def es_write_data(
-    es_client: AsyncElasticsearch,
-) -> Callable[[Dict[str, Any]], None]:
-    """
-    Фикстура, предоставляющая функцию для записи данных в Elasticsearch.
-
-    Используется для создания или удаления индексов и добавления документов
-    в Elasticsearch в процессе тестирования.
-
-    Параметры:
-        es_client (AsyncElasticsearch): Клиент Elasticsearch.
-
-    Возвращает:
-        Callable[[Dict[str, Any]], None]: Функция, принимающая словарь
-        с данными для записи в Elasticsearch.
-    """
-
-    async def inner(data: Dict[str, Any]) -> None:
-        idx = data["index"]
-        if await es_client.indices.exists(index=idx):
-            await es_client.indices.delete(index=idx)
-        await es_client.indices.create(index=idx, mappings=data["mapping"])
-
-        obj_id = data.get("object_id")
-        obj_data = data.get("object_data")
-        await es_client.index(index=idx, id=obj_id, document=obj_data)
-
-    return inner
 
 
 @pytest_asyncio.fixture(name="make_get_request")
