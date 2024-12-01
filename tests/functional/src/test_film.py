@@ -25,15 +25,18 @@ from tests.functional.settings import test_settings
         ),
         (
             "qwea21cf-9097-479e-904a-13dd7198c1dd",
-            {"status": HTTPStatus.NOT_FOUND, "title": None, "imdb_rating": None},
+            {"status": HTTPStatus.NOT_FOUND, "title": None,
+             "imdb_rating": None},
         ),
         (
             "INCORRECT-UUID-FORMAT",
-            {"status": HTTPStatus.NOT_FOUND, "title": None, "imdb_rating": None},
+            {"status": HTTPStatus.NOT_FOUND, "title": None,
+             "imdb_rating": None},
         ),
         (
             "/",
-            {"status": HTTPStatus.NOT_FOUND, "title": None, "imdb_rating": None},
+            {"status": HTTPStatus.NOT_FOUND, "title": None,
+             "imdb_rating": None},
         ),
     ],
 )
