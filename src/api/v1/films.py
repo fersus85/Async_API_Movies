@@ -29,7 +29,7 @@ VALID_SORT_OPT = (
     summary="Поиск фильмов",
     description="Полнотекстовый поиск по кинопроизведениям, \
                 поля для поиска: title, directors, actors, writers",
-    responses=rg.search_film_response()
+    responses=rg.search_film_response(),
 )
 async def search_in_films(
     query: str = Query(..., description="Ключевое слово для поиска"),
@@ -74,7 +74,7 @@ async def search_in_films(
     summary="Популярные фильмы",
     description="Возращает сортированные фильмы\
                   с возможностью фильтрации по жанру",
-    responses=rg.get_film_list_response()
+    responses=rg.get_film_list_response(),
 )
 async def get_popular_films(
     sort: str = "-imdb_rating",
@@ -126,7 +126,7 @@ async def get_popular_films(
     summary="Находит фильм по id",
     description="Находит фильм по id и возвращает \
                 детальную информацию о нем",
-    responses=rg.get_film_by_id_response()
+    responses=rg.get_film_by_id_response(),
 )
 async def get_film_by_id(
     film_id: str, film_service: FilmService = Depends(get_film_service)

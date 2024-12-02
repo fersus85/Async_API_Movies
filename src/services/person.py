@@ -21,22 +21,18 @@ class PersonService(BaseService):
     data_source = "person"
     model_type = Person
 
-    def _get_query(self,
-                   query: str,
-                   page_size: int,
-                   page_number: int) -> IQuery:
+    def _get_query(
+        self, query: str, page_size: int, page_number: int
+    ) -> IQuery:
         params = QueryParams(
-            query=query,
-            page_size=page_size,
-            page_number=page_number
+            query=query, page_size=page_size, page_number=page_number
         )
 
         return query_factory(self.searcher, PersonQuery, params)
 
     @cache_method(cache_attr="cacher")
     async def get_by_id(self, id: str) -> Optional[BaseModel]:
-        data = await self.searcher.get(data_source=self.data_source,
-                                       id=id)
+        data = await self.searcher.get(data_source=self.data_source, id=id)
         if not data:
             return None
 
@@ -44,10 +40,9 @@ class PersonService(BaseService):
         return self.model_type(**enriched)
 
     @cache_method(cache_attr="cacher")
-    async def search(self,
-                     query: str,
-                     page_size: int,
-                     page_number: int) -> List[BaseModel]:
+    async def search(
+        self, query: str, page_size: int, page_number: int
+    ) -> List[BaseModel]:
         query = self._get_query(query, page_size, page_number)
         data = await self.searcher.search(self.data_source, query)
 
@@ -104,13 +99,11 @@ class PersonService(BaseService):
         logger.debug("_get_films_from_es_by_person_id: %s", person_id)
 
         params = QueryParams(
-            query=person_id,
-            page_size=page_size,
-            page_number=page_number
+            query=person_id, page_size=page_size, page_number=page_number
         )
         query = query_factory(self.searcher, FilmsByPersonIDQuery, params)
 
-        data = await self.searcher.search('film', query)
+        data = await self.searcher.search("film", query)
 
         films = [Film(**row) for row in data]
 
@@ -152,7 +145,7 @@ class PersonService(BaseService):
 
     @cache_method(cache_attr="cacher")
     async def get_total_persons_count(self) -> int:
-        "Функция возвращает кол-во персон в ES"
+        """Функция возвращает кол-во персон в ES"""
         return await self.get_count()
 
 
