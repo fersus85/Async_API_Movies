@@ -1,5 +1,4 @@
 import pickle
-from http import HTTPStatus
 from typing import Any, Callable, Dict
 from urllib.parse import urlencode
 from uuid import uuid4
@@ -18,25 +17,22 @@ from tests.functional.settings import test_settings
         (
             "3d825f60-9fff-4dfe-b294-1a45fa1e115d",
             {
-                "status": HTTPStatus.OK,
+                "status": 200,
                 "title": "Star Wars: Episode IV - A New Hope",
                 "imdb_rating": 8.6,
             },
         ),
         (
             "qwea21cf-9097-479e-904a-13dd7198c1dd",
-            {"status": HTTPStatus.NOT_FOUND, "title": None,
-             "imdb_rating": None},
+            {"status": 404, "title": None, "imdb_rating": None},
         ),
         (
             "INCORRECT-UUID-FORMAT",
-            {"status": HTTPStatus.NOT_FOUND, "title": None,
-             "imdb_rating": None},
+            {"status": 404, "title": None, "imdb_rating": None},
         ),
         (
             "/",
-            {"status": HTTPStatus.NOT_FOUND, "title": None,
-             "imdb_rating": None},
+            {"status": 404, "title": None, "imdb_rating": None},
         ),
     ],
 )
@@ -83,7 +79,7 @@ async def test_list_films(
     status = response.status
 
     assert len(body) == 6
-    assert status == HTTPStatus.OK
+    assert status == 200
 
 
 @pytest.mark.parametrize(
@@ -91,31 +87,31 @@ async def test_list_films(
     [
         (
             {"page_size": 30, "page_number": 1},
-            {"status": HTTPStatus.OK, "body_len": 6},
+            {"status": 200, "body_len": 6},
         ),
         (
             {"page_size": 5, "page_number": 1},
-            {"status": HTTPStatus.OK, "body_len": 5},
+            {"status": 200, "body_len": 5},
         ),
         (
             {"page_size": 5, "page_number": 2},
-            {"status": HTTPStatus.OK, "body_len": 1},
+            {"status": 200, "body_len": 1},
         ),
         (
             {"page_size": 5, "page_number": 3},
-            {"status": HTTPStatus.BAD_REQUEST, "body_len": 1},
+            {"status": 400, "body_len": 1},
         ),
         (
             {"page_size": 51, "page_number": 1},
-            {"status": HTTPStatus.UNPROCESSABLE_CONTENT, "body_len": 1},
+            {"status": 422, "body_len": 1},
         ),
         (
             {"page_size": 0, "page_number": 0},
-            {"status": HTTPStatus.UNPROCESSABLE_CONTENT, "body_len": 1},
+            {"status": 422, "body_len": 1},
         ),
         (
             {"page_size": -1, "page_number": -1},
-            {"status": HTTPStatus.UNPROCESSABLE_CONTENT, "body_len": 1},
+            {"status": 422, "body_len": 1},
         ),
     ],
 )
@@ -154,7 +150,7 @@ async def test_list_films_with_pages(
                 "genre_id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
             },
             {
-                "status": HTTPStatus.OK,
+                "status": 200,
                 "body_len": 3,
                 "film_id": "0312ed51-8833-413f-bff5-0e139c11264a",
             },
@@ -165,7 +161,7 @@ async def test_list_films_with_pages(
                 "genre_id": "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
             },
             {
-                "status": HTTPStatus.OK,
+                "status": 200,
                 "body_len": 3,
                 "film_id": "516f91da-bd70-4351-ba6d-25e16b7713b7",
             },
@@ -176,7 +172,7 @@ async def test_list_films_with_pages(
                 "genre_id": "5373d043-3f41-4ea8-9947-4b746c601bbd",
             },
             {
-                "status": HTTPStatus.OK,
+                "status": 200,
                 "body_len": 3,
                 "film_id": "8fcebebd-a1d9-45c9-96c5-bd798db4a9c6",
             },
@@ -187,7 +183,7 @@ async def test_list_films_with_pages(
                 "genre_id": "5373d043-3f41-4ea8-9947-4b746c601bbd",
             },
             {
-                "status": HTTPStatus.OK,
+                "status": 200,
                 "body_len": 3,
                 "film_id": "24eafcd7-1018-4951-9e17-583e2554ef0a",
             },
@@ -253,11 +249,11 @@ async def test_cache_film_by_id(
     response = await make_get_request(test_settings.ES_FILM_IDX, film_id)
     body = await response.json()
 
-    assert response.status == HTTPStatus.OK
+    assert response.status == 200
     assert body["uuid"] == film_id
     assert body["title"] == "CACHE"
 
     await redis_client.delete(key)
 
     response = await make_get_request(test_settings.ES_FILM_IDX, film_id)
-    assert response.status == HTTPStatus.NOT_FOUND
+    assert response.status == 404
