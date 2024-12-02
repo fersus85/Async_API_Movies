@@ -1,4 +1,5 @@
 import pickle
+from http import HTTPStatus
 from typing import Dict
 from uuid import uuid4
 
@@ -13,15 +14,15 @@ from tests.functional.settings import test_settings
     [
         (
             "3d8d9bf5-0d90-4353-88ba-4ccc5d2c07ff",
-            {"status": 200, "name": "Action"},
+            {"status": HTTPStatus.OK, "name": "Action"},
         ),
         (
             "qwea21cf-9097-479e-904a-13dd7198c1dd",
-            {"status": 404, "name": None},
+            {"status": HTTPStatus.NOT_FOUND, "name": None},
         ),
         (
             "INCORRECT-UUID-FORMAT",
-            {"status": 404, "name": None},
+            {"status": HTTPStatus.NOT_FOUND, "name": None},
         ),
     ],
 )
@@ -48,7 +49,7 @@ async def test_list_genres(make_get_request):
     status = response.status
 
     assert len(body) == 26
-    assert status == 200
+    assert status == HTTPStatus.OK
 
 
 @pytest.mark.parametrize(
@@ -56,27 +57,27 @@ async def test_list_genres(make_get_request):
     [
         (
             {"page_size": 30, "page_number": 1},
-            {"status": 200, "body_len": 26},
+            {"status": HTTPStatus.OK, "body_len": 26},
         ),
         (
             {"page_size": 10, "page_number": 1},
-            {"status": 200, "body_len": 10},
+            {"status": HTTPStatus.OK, "body_len": 10},
         ),
         (
             {"page_size": 10, "page_number": 2},
-            {"status": 400, "body_len": 1},
+            {"status": HTTPStatus.BAD_REQUEST, "body_len": 1},
         ),
         (
             {"page_size": 10, "page_number": 3},
-            {"status": 400, "body_len": 1},
+            {"status": HTTPStatus.BAD_REQUEST, "body_len": 1},
         ),
         (
             {"page_size": 10, "page_number": 4},
-            {"status": 400, "body_len": 1},
+            {"status": HTTPStatus.BAD_REQUEST, "body_len": 1},
         ),
         (
             {"page_size": 51, "page_number": 1},
-            {"status": 422, "body_len": 1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
         ),
     ],
 )
@@ -113,11 +114,11 @@ async def test_cache_genre_by_id(redis_client, make_get_request):
     response = await make_get_request(test_settings.ES_GENRE_IDX, genre_id)
     body = await response.json()
 
-    assert response.status == 200
+    assert response.status == HTTPStatus.OK
     assert body["uuid"] == genre_id
     assert body["name"] == "CACHE"
 
     await redis_client.delete(key)
 
     response = await make_get_request(test_settings.ES_GENRE_IDX, genre_id)
-    assert response.status == 404
+    assert response.status == HTTPStatus.NOT_FOUND
