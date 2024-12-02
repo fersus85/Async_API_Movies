@@ -96,39 +96,37 @@ def search_film_response() -> Dict[int, Dict]:
 
 def get_person_by_id_response() -> Dict[int, Dict]:
     return {
-            200: {
-                "description": "Успешный ответ, возвращает информацию\
+        200: {
+            "description": "Успешный ответ, возвращает информацию\
                       о персоне.",
-                "content": {
-                    "application/json": {
-                        "example": {
-                            "uuid": "123e4567-e89b-12d3-a456-426614174000",
-                            "full_name": "Иван Иванов",
-                            "films": [
-                                {
-                                    "uuid": "456e4567-e89b-12d3-a456\
+            "content": {
+                "application/json": {
+                    "example": {
+                        "uuid": "123e4567-e89b-12d3-a456-426614174000",
+                        "full_name": "Иван Иванов",
+                        "films": [
+                            {
+                                "uuid": "456e4567-e89b-12d3-a456\
                                         -426614174001",
-                                    "roles": ["Actor"],
-                                },
-                                {
-                                    "uuid": "789e4567-e89b-12d3-a456-\
+                                "roles": ["Actor"],
+                            },
+                            {
+                                "uuid": "789e4567-e89b-12d3-a456-\
                                         426614174002",
-                                    "roles": ["Writer"],
-                                },
-                            ],
-                        }
+                                "roles": ["Writer"],
+                            },
+                        ],
                     }
-                },
+                }
             },
-            404: {
-                "description": "Персона не найдена по указанному id.",
-                "content": {
-                    "application/json": {
-                        "example": {"detail": "Person not found"}
-                    }
-                },
+        },
+        404: {
+            "description": "Персона не найдена по указанному id.",
+            "content": {
+                "application/json": {"example": {"detail": "Person not found"}}
             },
-        }
+        },
+    }
 
 
 def search_person_response() -> Dict[int, Dict]:

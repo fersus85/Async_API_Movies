@@ -25,14 +25,11 @@ class GenreService(BaseService):
         """Функция возвращает кол-во жанров в ES"""
         return await self.get_count()
 
-    def _get_query(self,
-                   query: str,
-                   page_size: int,
-                   page_number: int) -> IQuery:
+    def _get_query(
+        self, query: str, page_size: int, page_number: int
+    ) -> IQuery:
         params = QueryParams(
-            query=query,
-            page_size=page_size,
-            page_number=page_number
+            query=query, page_size=page_size, page_number=page_number
         )
 
         return query_factory(self.searcher, GenreQuery, params)

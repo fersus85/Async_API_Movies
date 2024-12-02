@@ -29,10 +29,10 @@ async def lifespan(app: FastAPI):
     redis.redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
     cacher.cacher = RedisCache(redis.redis)
     elastic.es_client = AsyncElasticsearch(
-        hosts=[f'http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}']
-        )
+        hosts=[f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}"]
+    )
     searcher.search_engine = ElasticSearchEngine(elastic.es_client)
-    logger.debug('Successfully connected to Redis and Elasticsearch.')
+    logger.debug("Successfully connected to Redis and Elasticsearch.")
     yield
     logger.debug("Closing connections")
     await redis.redis.close()

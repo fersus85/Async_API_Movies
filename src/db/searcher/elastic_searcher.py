@@ -7,8 +7,14 @@ from typing import Any, Optional, Dict, List
 from elasticsearch import NotFoundError, AsyncElasticsearch
 
 from db.searcher import ISearchEngine
-from db.searcher.query import IQuery, FilmQuery, PopularFilmQuery, \
-    GenreQuery, PersonQuery, FilmsByPersonIDQuery
+from db.searcher.query import (
+    IQuery,
+    FilmQuery,
+    PopularFilmQuery,
+    GenreQuery,
+    PersonQuery,
+    FilmsByPersonIDQuery,
+)
 from models.query_params import QueryParams
 
 logger = logging.getLogger(__name__)
@@ -20,13 +26,16 @@ class ElasticSearchEngine(ISearchEngine):
     designed to interact with an Elasticsearch cluster using
     an AsyncElasticsearch client.
     """
+
     def __init__(self, client: Any):
         """
         Initializes the ElasticSearchEngine with an AsyncElasticsearch client.
         """
         if not isinstance(client, AsyncElasticsearch):
-            raise TypeError("ElasticSearch client must"
-                            " be an AsyncElasticsearch instance")
+            raise TypeError(
+                "ElasticSearch client must"
+                " be an AsyncElasticsearch instance"
+            )
 
         self.client = client
 
@@ -43,9 +52,9 @@ class ElasticSearchEngine(ISearchEngine):
         except NotFoundError:
             return None
 
-    async def search(self,
-                     data_source: str,
-                     search_query: IElasticQuery) -> List[Dict[str, Any]]:
+    async def search(
+        self, data_source: str, search_query: IElasticQuery
+    ) -> List[Dict[str, Any]]:
         """
         Executes a search query against a specified Elasticsearch
         index using an instance of IElasticQuery.
@@ -104,8 +113,10 @@ class ElasticFilmQuery(IElasticQuery, FilmQuery):
 class ElasticPopularFilmQuery(IElasticQuery, PopularFilmQuery):
     def __init__(self, params: QueryParams):
         if not hasattr(params, "sort"):
-            raise ValueError("ElasticPopularFilmQuery only"
-                             " supports params with sort attribute")
+            raise ValueError(
+                "ElasticPopularFilmQuery only"
+                " supports params with sort attribute"
+            )
 
         offset = self._get_offset(params.page_number, params.page_size)
         order = "desc" if params.sort.startswith("-") else "asc"
@@ -136,7 +147,7 @@ class ElasticGenreQuery(IElasticQuery, GenreQuery):
         self.query = {
             "query": {"match_all": {}},
             "from": offset,
-            "size": params.page_size
+            "size": params.page_size,
         }
 
 
@@ -162,22 +173,23 @@ class ElasticFilmsByPersonIDQuery(IElasticQuery, FilmsByPersonIDQuery):
                         {
                             "nested": {
                                 "path": "actors",
-                                "query":
-                                    {"term": {"actors.id": params.query}},
+                                "query": {"term": {"actors.id": params.query}},
                             }
                         },
                         {
                             "nested": {
                                 "path": "writers",
-                                "query":
-                                    {"term": {"writers.id": params.query}},
+                                "query": {
+                                    "term": {"writers.id": params.query}
+                                },
                             }
                         },
                         {
                             "nested": {
                                 "path": "directors",
-                                "query":
-                                    {"term": {"directors.id": params.query}},
+                                "query": {
+                                    "term": {"directors.id": params.query}
+                                },
                             }
                         },
                     ]
