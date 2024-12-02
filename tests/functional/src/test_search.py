@@ -1,5 +1,6 @@
 from typing import Dict, Any, Callable, List
 from urllib.parse import urlencode
+from http import HTTPStatus
 from uuid import uuid4
 
 import pytest
@@ -24,50 +25,54 @@ from tests.functional.utils.helpers import (
     [
         pytest.param(
             {"query": "empt", "page_size": -1, "page_number": 1},
-            {"status": 422, "body_len": 1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
             id="incorrect page_size",
         ),
         pytest.param(
             {"query": "empt", "page_size": 30, "page_number": 0},
-            {"status": 422, "body_len": 1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
             id="incorrect page_number",
         ),
         pytest.param(
             {"query": "empt", "page_size": 0, "page_number": 0},
-            {"status": 422, "body_len": 1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
             id="incorrect page_size and page_number",
         ),
         pytest.param(
             {"query": "empt", "page_size": 30, "page_number": 10000000},
-            {"status": 400, "body_len": 1},
+            {"status": HTTPStatus.BAD_REQUEST, "body_len": 1},
             id="exceed max pages",
         ),
         pytest.param(
             {"page_size": 30, "page_number": 1},
-            {"status": 422, "body_len": 1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
             id="missing query",
         ),
         pytest.param(
             {"query": "", "page_size": 30, "page_number": 1},
-            {"status": 200, "body_len": 0},
+            {"status": HTTPStatus.OK, "body_len": 0},
             id="empty query",
         ),
         pytest.param(
             {"query": "empt", "page_size": "abc", "page_number": 1},
-            {"status": 422, "body_len": 1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
             id="invalid page_size type",
         ),
         pytest.param(
             {"query": "empt", "page_size": 30, "page_number": "abc"},
-            {"status": 422, "body_len": 1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
             id="invalid page_number type",
         ),
         pytest.param(
             {"query": "empt", "page_size": 10000, "page_number": 1},
-            {"status": 422, "body_len": 1},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
             id="exceed max page_size",
         ),
-        pytest.param({}, {"status": 422, "body_len": 1}, id="no all params"),
+        pytest.param(
+            {},
+            {"status": HTTPStatus.UNPROCESSABLE_ENTITY, "body_len": 1},
+            id="no all params",
+        ),
     ],
 )
 @pytest.mark.asyncio
@@ -104,42 +109,42 @@ async def test_invalid_params(
     [
         pytest.param(
             {"query": "Star", "page_size": 30, "page_number": 1},
-            {"status": 200, "body_len": 6},
+            {"status": HTTPStatus.OK, "body_len": 6},
             id="correct page_size and page_number",
         ),
         pytest.param(
             {"query": "Star", "page_size": 2, "page_number": 1},
-            {"status": 200, "body_len": 2},
+            {"status": HTTPStatus.OK, "body_len": 2},
             id="correct small page",
         ),
         pytest.param(
             {"query": "Star", "page_size": 5, "page_number": 2},
-            {"status": 200, "body_len": 1},
+            {"status": HTTPStatus.OK, "body_len": 1},
             id="correct last page",
         ),
         pytest.param(
             {"query": "UNEXISTS", "page_size": 30, "page_number": 1},
-            {"status": 200, "body_len": 0},
+            {"status": HTTPStatus.OK, "body_len": 0},
             id="non-exists query result",
         ),
         pytest.param(
             {"query": "Star", "page_size": 1, "page_number": 1},
-            {"status": 200, "body_len": 1},
+            {"status": HTTPStatus.OK, "body_len": 1},
             id="min page_size and page_number",
         ),
         pytest.param(
             {"query": "Star"},
-            {"status": 200, "body_len": 6},
+            {"status": HTTPStatus.OK, "body_len": 6},
             id="no page_size and page_number",
         ),
         pytest.param(
             {"query": " Star%", "page_size": 20, "page_number": 1},
-            {"status": 200, "body_len": 6},
+            {"status": HTTPStatus.OK, "body_len": 6},
             id="query with special chars",
         ),
         pytest.param(
             {"query": "a" * 1000000, "page_size": 30, "page_number": 1},
-            {"status": 200, "body_len": 0},
+            {"status": HTTPStatus.OK, "body_len": 0},
             id="big query",
         ),
     ],
@@ -177,12 +182,12 @@ async def test_film_search_simple(
     [
         pytest.param(
             {"query": "Ivan", "page_size": 30, "page_number": 1},
-            {"status": 200, "body_len": 0},
+            {"status": HTTPStatus.OK, "body_len": 0},
             id="correct page_size and page_number",
         ),
         pytest.param(
             {"query": "Endô", "page_size": 50, "page_number": 1},
-            {"status": 200, "body_len": 1},
+            {"status": HTTPStatus.OK, "body_len": 1},
             id="non ascii",
         ),
     ],
@@ -289,7 +294,7 @@ async def test_film_search_predicate(
                 )
             ],
             {"query": "Star", "page_size": 30, "page_number": 1},
-            {"status": 200, "body_len": 1},
+            {"status": HTTPStatus.OK, "body_len": 1},
             test_settings.ES_FILM_IDX,
             id="cache films",
         ),
@@ -299,7 +304,7 @@ async def test_film_search_predicate(
                 Person(id=uuid4(), full_name="Toyota Corolla", films=[]),
             ],
             {"query": "Toyota", "page_size": 30, "page_number": 1},
-            {"status": 200, "body_len": 2},
+            {"status": HTTPStatus.OK, "body_len": 2},
             test_settings.ES_PERSON_IDX,
             id="cache persons",
         ),
