@@ -16,7 +16,7 @@ router = APIRouter()
     response_model=List[GenreSchema],
     summary="Все жанры",
     description="Возвращает все жанры из базы данных",
-    responses=rg.get_genres_response()
+    responses=rg.get_genres_response(),
 )
 async def get_genres(
     page_size: int = Query(
@@ -51,7 +51,7 @@ async def get_genres(
     response_model=GenreSchema,
     summary="Поиск жанра по id",
     description="Ищет в базе данных ES жанр по переданному id",
-    responses=rg.genres_by_id_response()
+    responses=rg.genres_by_id_response(),
 )
 async def get_genre_by_id(
     genre_id: str, genre_service: GenreService = Depends(get_genre_service)

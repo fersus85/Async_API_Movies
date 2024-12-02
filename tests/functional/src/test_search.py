@@ -14,8 +14,10 @@ from schemas.person import PersonSchema
 from models.film import Film
 from models.person import Person
 from tests.functional.settings import test_settings
-from tests.functional.utils.helpers import perform_request_and_assert, \
-    multi_word_check
+from tests.functional.utils.helpers import (
+    perform_request_and_assert,
+    multi_word_check,
+)
 
 
 @pytest.mark.parametrize(
@@ -71,13 +73,14 @@ from tests.functional.utils.helpers import perform_request_and_assert, \
             {"status": HTTPStatus.UNPROCESSABLE_CONTENT, "body_len": 1},
             id="no all params"
         ),
+        pytest.param({}, {"status": 422, "body_len": 1}, id="no all params"),
     ],
 )
 @pytest.mark.asyncio
 async def test_invalid_params(
-        make_get_request: Callable[[str, str], ClientResponse],
-        query_data: Dict[str, Any],
-        exp_answer: Dict[str, Any]
+    make_get_request: Callable[[str, str], ClientResponse],
+    query_data: Dict[str, Any],
+    exp_answer: Dict[str, Any],
 ):
     """
     Test function for validating the handling of
@@ -149,9 +152,9 @@ async def test_invalid_params(
 )
 @pytest.mark.asyncio
 async def test_film_search_simple(
-        make_get_request: Callable[[str, str], ClientResponse],
-        query_data: Dict[str, Any],
-        exp_answer: Dict[str, Any]
+    make_get_request: Callable[[str, str], ClientResponse],
+    query_data: Dict[str, Any],
+    exp_answer: Dict[str, Any],
 ):
     """
     Test function for verifying correct handling of valid
@@ -192,9 +195,9 @@ async def test_film_search_simple(
 )
 @pytest.mark.asyncio
 async def test_person_search_simple(
-        make_get_request: Callable[[str, str], ClientResponse],
-        query_data: Dict[str, Any],
-        exp_answer: Dict[str, Any]
+    make_get_request: Callable[[str, str], ClientResponse],
+    query_data: Dict[str, Any],
+    exp_answer: Dict[str, Any],
 ):
     """
     Test function for verifying correct handling of valid
@@ -223,28 +226,30 @@ async def test_person_search_simple(
     [
         pytest.param(
             {"query": "Star", "page_size": 30, "page_number": 1},
-            lambda query, response: all(query.lower() in row["title"].lower()
-                                        for row in response),
-            id="simple query"
+            lambda query, response: all(
+                query.lower() in row["title"].lower() for row in response
+            ),
+            id="simple query",
         ),
         pytest.param(
             {"query": "sTAr", "page_size": 30, "page_number": 1},
-            lambda query, response: all(query.lower() in row["title"].lower()
-                                        for row in response),
-            id="case insensitive query"
+            lambda query, response: all(
+                query.lower() in row["title"].lower() for row in response
+            ),
+            id="case insensitive query",
         ),
         pytest.param(
             {"query": "Lucky Wars", "page_size": 10, "page_number": 1},
             multi_word_check,
-            id="multi word query"
+            id="multi word query",
         ),
-    ]
+    ],
 )
 @pytest.mark.asyncio
 async def test_film_search_predicate(
-        make_get_request: Callable[[str, str], ClientResponse],
-        query_data: Dict[str, Any],
-        predicate: Callable[[str, List[Dict[str, str]]], bool]
+    make_get_request: Callable[[str, str], ClientResponse],
+    query_data: Dict[str, Any],
+    predicate: Callable[[str, List[Dict[str, str]]], bool],
 ):
     """
     Test function for checking the content of film search
@@ -267,7 +272,7 @@ async def test_film_search_predicate(
     query_parameters = f"?{urlencode(query_data)}"
 
     response = await make_get_request(
-        test_settings.ES_FILM_IDX, 'search' + query_parameters
+        test_settings.ES_FILM_IDX, "search" + query_parameters
     )
 
     body = await response.json()
@@ -280,34 +285,40 @@ async def test_film_search_predicate(
     [
         pytest.param(
             [
-                Film(id=uuid4(), title="!Super-Star!", directors=[], actors=[],
-                     writers=[], genres=[])
+                Film(
+                    id=uuid4(),
+                    title="!Super-Star!",
+                    directors=[],
+                    actors=[],
+                    writers=[],
+                    genres=[],
+                )
             ],
             {"query": "Star", "page_size": 30, "page_number": 1},
             {"status": HTTPStatus.OK, "body_len": 1},
             test_settings.ES_FILM_IDX,
-            id="cache films"
+            id="cache films",
         ),
         pytest.param(
             [
                 Person(id=uuid4(), full_name="Harrison Toyota", films=[]),
-                Person(id=uuid4(), full_name="Toyota Corolla", films=[])
+                Person(id=uuid4(), full_name="Toyota Corolla", films=[]),
             ],
             {"query": "Toyota", "page_size": 30, "page_number": 1},
             {"status": HTTPStatus.OK, "body_len": 2},
             test_settings.ES_PERSON_IDX,
-            id="cache persons"
+            id="cache persons",
         ),
-    ]
+    ],
 )
 @pytest.mark.asyncio
 async def test_cache(
-        make_get_request: Callable[[str, str], ClientResponse],
-        redis_client: Redis,
-        fake_data: List[BaseModel],
-        query_data: Dict[str, Any],
-        exp_answer: Dict[str, Any],
-        index: str
+    make_get_request: Callable[[str, str], ClientResponse],
+    redis_client: Redis,
+    fake_data: List[BaseModel],
+    query_data: Dict[str, Any],
+    exp_answer: Dict[str, Any],
+    index: str,
 ):
     """
     Test function for verifying the caching mechanism for search
@@ -339,11 +350,15 @@ async def test_cache(
     """
     redis_cache = RedisCache(redis_client)
 
-    key = form_key("search",
-                   (query_data["query"],
-                    query_data["page_size"],
-                    query_data["page_number"]),
-                   {})
+    key = form_key(
+        "search",
+        (
+            query_data["query"],
+            query_data["page_size"],
+            query_data["page_number"],
+        ),
+        {},
+    )
 
     await redis_cache.set(key, fake_data, 60)
 
@@ -361,22 +376,22 @@ async def test_cache(
             {"query": "Star"},
             test_settings.ES_FILM_IDX,
             FilmSchema,
-            id="film schema"
+            id="film schema",
         ),
         pytest.param(
             {"query": "Aya"},
             test_settings.ES_PERSON_IDX,
             PersonSchema,
-            id="person schema"
+            id="person schema",
         ),
-    ]
+    ],
 )
 @pytest.mark.asyncio
 async def test_structure(
-        make_get_request: Callable[[str, str], ClientResponse],
-        query_data: Dict[str, Any],
-        index: str,
-        valid_schema: BaseModel
+    make_get_request: Callable[[str, str], ClientResponse],
+    query_data: Dict[str, Any],
+    index: str,
+    valid_schema: BaseModel,
 ):
     """
     Test function for validating the structure of the search
@@ -399,9 +414,7 @@ async def test_structure(
     """
     query_parameters = f"?{urlencode(query_data)}"
 
-    response = await make_get_request(
-        index, 'search' + query_parameters
-    )
+    response = await make_get_request(index, "search" + query_parameters)
 
     body = await response.json()
 

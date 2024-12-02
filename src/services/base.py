@@ -14,23 +14,20 @@ class BaseService(abc.ABC):
     data_source = ""
     model_type = BaseModel
 
-    def __init__(self, cache: AbstractCache,
-                 search_engine: ISearchEngine):
+    def __init__(self, cache: AbstractCache, search_engine: ISearchEngine):
         self.cacher = cache
         self.searcher = search_engine
 
     @abc.abstractmethod
-    def _get_query(self,
-                   query: str,
-                   page_size: int,
-                   page_number: int) -> IQuery:
+    def _get_query(
+        self, query: str, page_size: int, page_number: int
+    ) -> IQuery:
         pass
 
     @cache_method(cache_attr="cacher")
-    async def search(self,
-                     query: str,
-                     page_size: int,
-                     page_number: int) -> List[BaseModel]:
+    async def search(
+        self, query: str, page_size: int, page_number: int
+    ) -> List[BaseModel]:
         """
         Функция поиска, вызывающая поиск в Эластике и обогащающая результат.
         Параметры:
@@ -54,8 +51,7 @@ class BaseService(abc.ABC):
           :id: str UUID объекта
         """
 
-        data = await self.searcher.get(data_source=self.data_source,
-                                       id=id)
+        data = await self.searcher.get(data_source=self.data_source, id=id)
         if not data:
             return None
 

@@ -7,38 +7,39 @@ from utils.utils import get_all_subclasses
 
 class IQuery(ABC):
     """
-    Abstract Base Class for query objects.
+     Abstract Base Class for query objects.
 
-    Example structure:
-       +------------------+
-       |     IQuery       |<----------------+
-       |------------------|                 |
-       | + linked_searcher|                 |
-       |   _class: Type   |                 |
-       | + __init__()     |                 |
-       |------------------|                 |
-                ^                           |
-                |                           |
-   +---------------------+          +------------------+
-   |   IElasticQuery     |          |    FilmQuery     |
-   |---------------------|          |------------------|
-   | + linked_searcher   |          |                  |
-   |   _class:           |          |                  |
-   |   ElasticSearchEngine|         |                  |
-   | + __init__()         |         |                  |
-   | + _get_offset()      |         |                  |
-   +---------------------+          +------------------+
-                ^                           ^
-                |                           |
-                +-----------+---------------+
-                            |
-            +-----------------------------+
-            |     ElasticFilmQuery        |
-            |-----------------------------|
-            | + __init__(params)          |
-            | + query: dict               |
-            |-----------------------------|
+     Example structure:
+        +------------------+
+        |     IQuery       |<----------------+
+        |------------------|                 |
+        | + linked_searcher|                 |
+        |   _class: Type   |                 |
+        | + __init__()     |                 |
+        |------------------|                 |
+                 ^                           |
+                 |                           |
+    +---------------------+          +------------------+
+    |   IElasticQuery     |          |    FilmQuery     |
+    |---------------------|          |------------------|
+    | + linked_searcher   |          |                  |
+    |   _class:           |          |                  |
+    |   ElasticSearchEngine|         |                  |
+    | + __init__()         |         |                  |
+    | + _get_offset()      |         |                  |
+    +---------------------+          +------------------+
+                 ^                           ^
+                 |                           |
+                 +-----------+---------------+
+                             |
+             +-----------------------------+
+             |     ElasticFilmQuery        |
+             |-----------------------------|
+             | + __init__(params)          |
+             | + query: dict               |
+             |-----------------------------|
     """
+
     @abstractmethod
     def __init__(self, params: QueryParams):
         """
@@ -94,9 +95,9 @@ class ISearchEngine(ABC):
         pass
 
     @abstractmethod
-    async def search(self,
-                     data_source: str,
-                     search_query: IQuery) -> List[Dict[str, Any]]:
+    async def search(
+        self, data_source: str, search_query: IQuery
+    ) -> List[Dict[str, Any]]:
         """
         Performs a search query on the specified data source.
 
@@ -130,9 +131,11 @@ class ISearchEngine(ABC):
         pass
 
 
-def query_factory(search_engine_: Union[Type[ISearchEngine], ISearchEngine],
-                  query_cls: Type[IQuery],
-                  params: QueryParams) -> IQuery:
+def query_factory(
+    search_engine_: Union[Type[ISearchEngine], ISearchEngine],
+    query_cls: Type[IQuery],
+    params: QueryParams,
+) -> IQuery:
     """
     Factory function to create an instance of a query associated
     with the specified search engine.
@@ -152,24 +155,32 @@ def query_factory(search_engine_: Union[Type[ISearchEngine], ISearchEngine],
         IQuery: An instance of the query class associated
                 with the specified search engine.
     """
-    search_engine_cls = type(search_engine_) if (
-        isinstance(search_engine_, ISearchEngine)) else search_engine_
+    search_engine_cls = (
+        type(search_engine_)
+        if (isinstance(search_engine_, ISearchEngine))
+        else search_engine_
+    )
 
     query_classes = get_all_subclasses(query_cls)
 
     linked_query = [
-        cls for cls in query_classes
+        cls
+        for cls in query_classes
         if cls.linked_searcher_class == search_engine_cls
     ]
 
     if len(linked_query) > 1:
-        raise ValueError("Multiple query classes found for "
-                         f"{search_engine_cls.__name__} in "
-                         f"{query_cls.__name__}")
+        raise ValueError(
+            "Multiple query classes found for "
+            f"{search_engine_cls.__name__} in "
+            f"{query_cls.__name__}"
+        )
     elif len(linked_query) == 0:
-        raise ValueError(f"No query class found for "
-                         f"{search_engine_cls.__name__} in "
-                         f"{query_cls.__name__}")
+        raise ValueError(
+            f"No query class found for "
+            f"{search_engine_cls.__name__} in "
+            f"{query_cls.__name__}"
+        )
 
     return linked_query[0](params)
 
