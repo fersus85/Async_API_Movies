@@ -3,11 +3,14 @@ import time
 
 import aiohttp
 from aiohttp import ClientResponseError
+from dotenv import load_dotenv
 from fastapi import Request, HTTPException, status
 from fastapi.params import Depends
 
 from db.cacher import get_cacher, AbstractCache
 from schemas.auth import AccessJWT
+
+load_dotenv()
 
 
 async def verify_access_token(token: str, role: str) -> None:

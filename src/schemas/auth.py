@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
 import jwt
@@ -32,7 +33,7 @@ class ProtoJWT(BaseModel):
     def from_jwt(
             cls,
             token: str,
-            secret_key: str | None
+            secret_key: Optional[str]
     ):
         """
         Создает экземпляр ProtoJWT из JWT токена.
