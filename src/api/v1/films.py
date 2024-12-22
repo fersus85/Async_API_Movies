@@ -7,11 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from schemas.film import FilmDetailSchema, FilmPerson, FilmSchema, GenreFilm
 from services.film import FilmService, get_film_service
 from utils.film_utils import get_response_list, validate_page_number
+from services.auth import PermissionChecker
 import utils.response_getter as rg
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(PermissionChecker(required="USER"))],
+)
 
 VALID_SORT_OPT = (
     "-imdb_rating",
@@ -83,7 +86,7 @@ async def get_popular_films(
         50, ge=1, le=50, description="Кол-во фильмов в выдаче (1-50)"
     ),
     page_number: int = Query(1, ge=1, description="Номер страницы выдачи"),
-    film_service: FilmService = Depends(get_film_service),
+    film_service: FilmService = Depends(get_film_service)
 ) -> List[FilmSchema]:
     """
     Обработчик маршрута api/v1/films,
