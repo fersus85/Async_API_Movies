@@ -75,7 +75,7 @@ class CircuitBreaker:
 
 def circuit_breaker(
         failure_threshold: int = 3,
-        recovery_timeout: int = 120
+        recovery_timeout: int = 10
 ) -> Callable:
     breakers = {}
 
