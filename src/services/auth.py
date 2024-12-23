@@ -9,10 +9,12 @@ from fastapi.params import Depends
 
 from db.cacher import get_cacher, AbstractCache
 from schemas.auth import AccessJWT
+from services.circuit_breaker import circuit_breaker
 
 load_dotenv()
 
 
+@circuit_breaker()
 async def verify_access_token(token: str, role: str) -> None:
     async with aiohttp.ClientSession() as session:
         try:
