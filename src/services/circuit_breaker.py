@@ -92,6 +92,8 @@ def circuit_breaker(
 
             try:
                 return await breaker.call(func, *args, **kwargs)
+            except HTTPException as e:
+                raise e
             except Exception:
                 raise HTTPException(
                     status_code=503,
