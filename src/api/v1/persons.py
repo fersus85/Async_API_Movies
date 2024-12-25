@@ -5,10 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 import utils.response_getter as rg
 from schemas.person import FilmByPersonSchema, PersonFilmSchema, PersonSchema
+from services.auth import PermissionChecker
 from services.person import PersonService, get_person_service
 from utils.film_utils import validate_page_number
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(PermissionChecker(required="USER"))],
+)
 
 
 @router.get(

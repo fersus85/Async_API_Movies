@@ -4,11 +4,14 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from schemas.genre import GenreSchema
+from services.auth import PermissionChecker
 from services.genre import GenreService, get_genre_service
 import utils.response_getter as rg
 from utils.film_utils import validate_page_number
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(PermissionChecker(required="USER"))],
+)
 
 
 @router.get(
